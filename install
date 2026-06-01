@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+# sp1ne install — manage Claude skills + project templates
+# Commands:
+#   link                              symlink ~/.claude/skills/* -> bundle/skills/* (non-destructive)
+#   scripts                           symlink ~/.claude/scripts -> bundle/scripts (non-destructive)
+#   init [type] [path]                pose template <type> in <path> (default: cwd, type: generic|symfony)
+#   push <skill> <repo> [<repo>...]   copy bundle/skills/<skill> -> <repo>/.claude/skills/<skill>
+#   unpush <skill> <repo>             remove repo copy of skill (restores global precedence)
+#   doctor                            check install health (symlinks, scripts, settings reference)
+
+set -euo pipefail
+
+BUNDLE_DIR="$(cd "$(dirname "$0")" && pwd)"
+GLOBAL_SKILLS="$HOME/.claude/skills"
+GLOBAL_SCRIPTS="$HOME/.claude/scripts"
+
+err()  { printf '\033[31m%s\033[0m\n' "$*" >&2; }
+ok()   { printf '\033[32m%s\033[0m\n' "$*"; }
+warn() { printf '\033[33m%s\033[0m\n' "$*"; }
+dim()  { printf '\033[2m%s\033[0m\n' "$*"; }
+
+usage() {
+    cat <<EOF
+usage: install <command> [args]
+
+  link
+      Create symlinks ~/.claude/skills/<X> -> $BUNDLE_DIR/skills/<X>
+      Non-destructive: skips existing dirs or wrong symlinks (with warning).
+
+  scripts
+      Create symlink ~/.claude/scripts -> $BUNDLE_DIR/scripts
+      Non-destructive: skips if a different file/dir exists at the target.
+      After linking, reference scripts as ~/.claude/scripts/<file> in settings.json.
+
+  init [generic|symfony] [path]
+      Pose project template files in <path> (default: current dir).
+      Non-destructive: never overwrites existing files.
+
+  push <skill> <repo> [<repo>...]
+      Copy bundle/skills/<skill> into each <repo>/.claude/skills/<skill>.
+      Shows diff before copying, asks confirmation per repo.
+      Does NOT commit — you do that in the repo.
+
+  unpush <skill> <repo>
+      Remove <repo>/.claude/skills/<skill> (restores global symlink precedence).
+      Asks confirmation. Does NOT commit.
+
+  doctor
+      Verify install health: each bundle skill is symlinked into ~/.claude/skills/,
+      ~/.claude/scripts points at the bundle, and the global settings.json references
+      the bundle statusline. Read-only — reports findings, does not fix.
+EOF
+}
+
+cmd_link() {
+    [ -d "$BUNDLE_DIR/skills" ] || { err "no skills/ in bundle"; exit 1; }
+    mkdir -p "$GLOBAL_SKILLS"
+    local linked=0 already=0 skipped=0 found=0
+    for src in "$BUNDLE_DIR/skills"/*/; do
+        [ -d "$src" ] || continue
+        found=$((found+1))
+        local clean_src="${src%/}"
+        local name
+        name=$(basename "$clean_src")
+        local dst="$GLOBAL_SKILLS/$name"
+        if [ ! -e "$dst" ] && [ ! -L "$dst" ]; then
+            ln -s "$clean_src" "$dst"
+            ok   "  linked  $name"
+            linked=$((linked+1))
+        elif [ -L "$dst" ] && [ "$(readlink "$dst")" = "$clean_src" ]; then
+            dim  "  ok      $name"
+            already=$((already+1))
+        else
+            warn "  SKIP    $name  (existing file/dir or wrong symlink at $dst)"
+            skipped=$((skipped+1))
+        fi
+    done
+    [ "$found" -eq 0 ] && warn "no skills found in $BUNDLE_DIR/skills/"
+    echo
+    echo "linked: $linked · already linked: $already · skipped: $skipped"
+}
+
+cmd_scripts() {
+    [ -d "$BUNDLE_DIR/scripts" ] || { err "no scripts/ in bundle"; exit 1; }
+    mkdir -p "$(dirname "$GLOBAL_SCRIPTS")"
+    local src="$BUNDLE_DIR/scripts"
+    if [ ! -e "$GLOBAL_SCRIPTS" ] && [ ! -L "$GLOBAL_SCRIPTS" ]; then
+        ln -s "$src" "$GLOBAL_SCRIPTS"
+        ok   "  linked  ~/.claude/scripts -> $src"
+    elif [ -L "$GLOBAL_SCRIPTS" ] && [ "$(readlink "$GLOBAL_SCRIPTS")" = "$src" ]; then
+        dim  "  ok      ~/.claude/scripts (already linked)"
+    else
+        warn "  SKIP    ~/.claude/scripts (existing file/dir or wrong symlink — leave alone)"
+        echo
+        dim  "  to use bundle scripts manually, reference: $src/<file>"
+        exit 0
+    fi
+    echo
+    dim  "  reference in settings.json as: node \"\$HOME/.claude/scripts/statusline.mjs\""
+}
+
+cmd_init() {
+    local type="${1:-generic}"
+    local target="${2:-$(pwd)}"
+    local src="$BUNDLE_DIR/templates/$type"
+    if [ ! -d "$src" ]; then
+        err "unknown template: $type"
+        echo "available: $(ls "$BUNDLE_DIR/templates" 2>/dev/null | tr '\n' ' ')"
+        exit 1
+    fi
+    [ -d "$target" ] || { err "target dir not found: $target"; exit 1; }
+    target="$(cd "$target" && pwd)"
+    echo "target: $target"
+    echo "template: $type"
+    echo
+    local posed=0 skipped=0
+    while IFS= read -r -d '' f; do
+        local rel="${f#"$src"/}"
+        local dst="$target/$rel"
+        if [ -e "$dst" ]; then
+            dim  "  exists   $rel"
+            skipped=$((skipped+1))
+        else
+            mkdir -p "$(dirname "$dst")"
+            cp "$f" "$dst"
+            ok   "  posed    $rel"
+            posed=$((posed+1))
+        fi
+    done < <(find "$src" -type f -print0)
+    echo
+    echo "posed: $posed · already present: $skipped"
+}
+
+cmd_push() {
+    [ "$#" -ge 2 ] || { err "usage: push <skill> <repo> [<repo>...]"; exit 1; }
+    local skill="$1"; shift
+    local src="$BUNDLE_DIR/skills/$skill"
+    [ -d "$src" ] || { err "skill not found in bundle: $skill"; exit 1; }
+    for repo in "$@"; do
+        if [ ! -d "$repo" ]; then
+            warn "skip: $repo (not a directory)"
+            continue
+        fi
+        local repo_abs
+        repo_abs="$(cd "$repo" && pwd)"
+        local dst="$repo_abs/.claude/skills/$skill"
+        echo
+        echo "==> $repo_abs"
+        if [ -d "$dst" ]; then
+            if diff -rq "$src" "$dst" > /dev/null 2>&1; then
+                dim "  already up to date"
+                continue
+            fi
+            echo "  diff:"
+            diff -ru "$src" "$dst" | sed 's/^/    /' || true
+        else
+            echo "  (new — not yet present in repo)"
+        fi
+        printf "  Apply to %s? [y/N] " "$repo_abs"
+        read -r resp
+        if [[ "$resp" =~ ^[Yy]$ ]]; then
+            mkdir -p "$repo_abs/.claude/skills"
+            rm -rf "$dst"
+            cp -RL "$src" "$dst"
+            ok "  pushed (now commit in $repo_abs)"
+        else
+            dim "  skipped"
+        fi
+    done
+}
+
+cmd_unpush() {
+    [ "$#" -eq 2 ] || { err "usage: unpush <skill> <repo>"; exit 1; }
+    local skill="$1"
+    local repo="$2"
+    [ -d "$repo" ] || { err "repo not found: $repo"; exit 1; }
+    local repo_abs
+    repo_abs="$(cd "$repo" && pwd)"
+    local dst="$repo_abs/.claude/skills/$skill"
+    if [ ! -d "$dst" ]; then
+        dim "no copy at $dst — nothing to do"
+        exit 0
+    fi
+    printf "Remove %s? [y/N] " "$dst"
+    read -r resp
+    if [[ "$resp" =~ ^[Yy]$ ]]; then
+        rm -rf "$dst"
+        ok "  removed (commit in $repo_abs if versioned)"
+    else
+        dim "  cancelled"
+    fi
+}
+
+cmd_doctor() {
+    local issues=0
+    echo "== bundle ==>"
+    dim "  $BUNDLE_DIR"
+    echo
+
+    echo "== skills ==>"
+    if [ ! -d "$BUNDLE_DIR/skills" ]; then
+        err "  no skills/ directory in bundle"
+        issues=$((issues+1))
+    else
+        for src in "$BUNDLE_DIR/skills"/*/; do
+            [ -d "$src" ] || continue
+            local clean_src="${src%/}"
+            local name
+            name=$(basename "$clean_src")
+            local dst="$GLOBAL_SKILLS/$name"
+            if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$clean_src" ]; then
+                ok   "  ok      $name"
+            elif [ -L "$dst" ]; then
+                warn "  WRONG   $name  (symlink points to $(readlink "$dst"))"
+                issues=$((issues+1))
+            elif [ -e "$dst" ]; then
+                warn "  SHADOW  $name  (real file/dir at $dst overrides bundle)"
+                issues=$((issues+1))
+            else
+                warn "  MISSING $name  (run: $BUNDLE_DIR/install link)"
+                issues=$((issues+1))
+            fi
+        done
+    fi
+    echo
+
+    echo "== scripts ==>"
+    if [ -L "$GLOBAL_SCRIPTS" ] && [ "$(readlink "$GLOBAL_SCRIPTS")" = "$BUNDLE_DIR/scripts" ]; then
+        ok   "  ok      ~/.claude/scripts -> $BUNDLE_DIR/scripts"
+    elif [ -L "$GLOBAL_SCRIPTS" ]; then
+        warn "  WRONG   ~/.claude/scripts points to $(readlink "$GLOBAL_SCRIPTS")"
+        issues=$((issues+1))
+    elif [ -e "$GLOBAL_SCRIPTS" ]; then
+        warn "  SHADOW  real file/dir at ~/.claude/scripts overrides bundle"
+        issues=$((issues+1))
+    else
+        warn "  MISSING ~/.claude/scripts  (run: $BUNDLE_DIR/install scripts)"
+        issues=$((issues+1))
+    fi
+    echo
+
+    echo "== settings ==>"
+    local settings="$HOME/.claude/settings.json"
+    if [ ! -f "$settings" ]; then
+        dim  "  no ~/.claude/settings.json — nothing to check"
+    elif grep -q 'statusline.mjs' "$settings" 2>/dev/null; then
+        if grep -q '\.claude/scripts/statusline.mjs\|\\$HOME/.claude/scripts/statusline.mjs' "$settings" 2>/dev/null; then
+            ok   "  ok      settings.json references ~/.claude/scripts/statusline.mjs"
+        else
+            warn "  REVIEW  settings.json references statusline.mjs but not via ~/.claude/scripts/"
+            issues=$((issues+1))
+        fi
+    else
+        dim  "  no statusLine entry in settings.json (optional)"
+    fi
+    echo
+
+    if [ "$issues" -eq 0 ]; then
+        ok "all good ($BUNDLE_DIR is healthy)"
+    else
+        warn "$issues issue(s) found"
+        exit 1
+    fi
+}
+
+case "${1:-}" in
+    link)    shift; cmd_link "$@" ;;
+    scripts) shift; cmd_scripts "$@" ;;
+    init)    shift; cmd_init "$@" ;;
+    push)    shift; cmd_push "$@" ;;
+    unpush)  shift; cmd_unpush "$@" ;;
+    doctor)  shift; cmd_doctor "$@" ;;
+    -h|--help|help|"") usage ;;
+    *)       err "unknown command: $1"; echo; usage; exit 1 ;;
+esac

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(make:*)",
+      "Bash(bin/console list:*)",
+      "Bash(bin/console debug:*)",
+      "Bash(bin/console doctrine:migrations:status:*)",
+      "Bash(bin/phpunit:*)",
+      "Bash(vendor/bin/phpstan analyse:*)",
+      "Bash(composer show:*)",
+      "Bash(composer outdated:*)"
+    ]
+  }
+}

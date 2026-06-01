@@ -1,0 +1,23 @@
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Node
+node_modules/
+
+# Claude Code — local machine state (not shared)
+.claude/settings.local.json
+**/settings.local.json
+
+# Secrets / credentials safety net
+.env
+.env.*
+!.env.example
+*.log
+*.pem
+*.key
+id_rsa*
+*.p12
