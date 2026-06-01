@@ -24,6 +24,8 @@ install scripts
 install init [generic|symfony] [path]
 install push <skill> <repo> [<repo>...]
 install unpush <skill> <repo>
+install status <repo>
+install update <repo>
 install doctor
 ```
 
@@ -58,12 +60,53 @@ git -C ~/personal/sp1ne commit -am "..."
 cd ~/work/team-repo && git add .claude/skills/grill-with-docs && git commit -m "skill: bump grill-with-docs"
 ```
 
+### Refresh a team repo's vendored skills (after editing the bundle)
+
+```bash
+~/personal/sp1ne/install status ~/work/team-repo   # read-only: see what drifted
+~/personal/sp1ne/install update ~/work/team-repo   # refresh every drifted skill at once (diff + one confirm)
+cd ~/work/team-repo && git add .claude/skills && git commit -m "skill: sync vendored skills with sp1ne"
+```
+
 ### Undo a local copy (back to global mode)
 
 ```bash
 ~/personal/sp1ne/install unpush grill-with-docs ~/work/team-repo
 # → removes the repo-local copy, precedence falls back to the global symlink
 ```
+
+## Link vs. push — the core trade-off
+
+Because a repo-local skill **shadows** the global one (see [precedence](#claude-code-precedence-good-to-know)), you can't have both active for the same skill. Every choice collapses to a single arbitrage:
+
+> **Auto-propagation** (the skill tracks the bundle) **vs. self-containment** (the skill travels with the repo).
+
+It's the same call you already make with dependencies:
+
+| sp1ne | Composer equivalent | Property |
+|---|---|---|
+| `link` (global symlink) | `composer global require` / system package | Shared, auto-updated — but the machine must have the bundle installed |
+| `push` (copy into repo) | a committed `vendor/` | Self-contained, travels with git, pinned — but you re-sync to update |
+
+A skill under `~/.claude/skills/` is **live** (tracks the bundle); one under `repo/.claude/skills/` is **vendored** (a snapshot you control). So `push` is the right tool only when:
+
+1. **Consumers don't have the bundle** — a repo shared with people who won't install sp1ne, an open-source project, ephemeral CI. The skill must ship with the repo or they never get it.
+2. **You want a pinned version** — frozen on the team side so a bundle refactor can't silently change behaviour mid-sprint. `push` re-shows the diff before overwriting: a deliberate refresh, on your terms.
+3. **The repo is published externally** — skills embedded for anyone who clones, zero dependency on your private setup.
+
+If none of those hold (every consumer has sp1ne, and you want your edits to propagate), use `link` and **don't** copy — a copy would only buy you drift.
+
+### Decision rule
+
+```
+Do all consumers have sp1ne installed?
+├─ No  → push (copy): the only way the skill reaches them
+└─ Yes → Do you want the team version frozen, independent of the bundle?
+         ├─ Yes → push (copy): a snapshot you refresh on your terms
+         └─ No  → link (symlink): auto-propagation   ← the default
+```
+
+`install init` never creates a copy: `link` is the default, `push` is the deliberate exception.
 
 ## Mental model
 
@@ -82,17 +125,21 @@ cd ~/work/team-repo && git add .claude/skills/grill-with-docs && git commit -m "
 
 So if a repo carries a local copy, that's what's used — even if the global symlink is newer. That's exactly what we want for pinning on the team side.
 
-## Seeing drift between bundle and team copy
+## Seeing — and fixing — drift between bundle and a vendored repo
+
+For a repo that vendors skills (the `push` model), `status` reports which local copies have drifted, and `update` re-syncs them all at once:
+
+```bash
+install status ~/work/team-repo   # read-only: up-to-date / DRIFT / local-only, per skill
+install update ~/work/team-repo   # refresh every drifted vendored skill (diff + one confirm)
+```
+
+`status` is the repo-side analogue of `doctor`. `update` only refreshes skills present in **both** the repo and the bundle — it never adds a skill (that's `push`) and never touches project-specific skills (those show as `local-only`). A symlink-model repo (nothing vendored) reports everything as `local-only`, and `update` is a no-op.
+
+For a one-off single-skill diff:
 
 ```bash
 diff -r ~/personal/sp1ne/skills/grill-with-docs ~/work/team-repo/.claude/skills/grill-with-docs
-```
-
-Or shortcut:
-
-```bash
-alias cbdiff='_(){ diff -r ~/personal/sp1ne/skills/$1 $2/.claude/skills/$1; }; _'
-cbdiff grill-with-docs ~/work/team-repo
 ```
 
 ## Structure

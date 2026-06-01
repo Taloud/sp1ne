@@ -6,6 +6,8 @@
 #   init [type] [path]                pose template <type> in <path> (default: cwd, type: generic|symfony)
 #   push <skill> <repo> [<repo>...]   copy bundle/skills/<skill> -> <repo>/.claude/skills/<skill>
 #   unpush <skill> <repo>             remove repo copy of skill (restores global precedence)
+#   status <repo>                     report which vendored skills in <repo> are up-to-date / drifted vs bundle
+#   update <repo>                     refresh all drifted vendored skills in <repo> to the bundle version
 #   doctor                            check install health (symlinks, scripts, settings reference)
 
 set -euo pipefail
@@ -44,6 +46,17 @@ usage: install <command> [args]
   unpush <skill> <repo>
       Remove <repo>/.claude/skills/<skill> (restores global symlink precedence).
       Asks confirmation. Does NOT commit.
+
+  status <repo>
+      Read-only. For each skill in <repo>/.claude/skills/, report whether it is
+      up-to-date vs the bundle, has DRIFTED, or is local-only (a project skill not
+      in the bundle — never touched). The repo-side analogue of doctor.
+
+  update <repo>
+      Refresh every drifted vendored skill in <repo> (those present in both repo
+      and bundle) to the bundle version. Shows diffs, asks one confirmation, applies.
+      Never adds new skills (use push) and never touches local-only project skills.
+      Does NOT commit.
 
   doctor
       Verify install health: each bundle skill is symlinked into ~/.claude/skills/,
@@ -191,6 +204,99 @@ cmd_unpush() {
     fi
 }
 
+cmd_status() {
+    [ "$#" -eq 1 ] || { err "usage: status <repo>"; exit 1; }
+    local repo="$1"
+    [ -d "$repo" ] || { err "repo not found: $repo"; exit 1; }
+    local repo_abs
+    repo_abs="$(cd "$repo" && pwd)"
+    local skills_dir="$repo_abs/.claude/skills"
+    echo "== $repo_abs ==>"
+    if [ ! -d "$skills_dir" ]; then
+        dim "  no .claude/skills/ — nothing vendored from the bundle"
+        return 0
+    fi
+    local up=0 drift=0 local_only=0
+    for sk in "$skills_dir"/*/; do
+        [ -d "$sk" ] || continue
+        local clean="${sk%/}"
+        local name
+        name=$(basename "$clean")
+        local src="$BUNDLE_DIR/skills/$name"
+        if [ ! -d "$src" ]; then
+            dim  "  local-only  $name  (not in bundle — project skill, never touched)"
+            local_only=$((local_only+1))
+        elif diff -rq "$src" "$clean" >/dev/null 2>&1; then
+            ok   "  up-to-date  $name"
+            up=$((up+1))
+        else
+            warn "  DRIFT       $name  (differs from bundle)"
+            drift=$((drift+1))
+        fi
+    done
+    # vendored statusline copy, if any
+    local sl="$repo_abs/.claude/scripts/statusline.mjs"
+    if [ -f "$sl" ]; then
+        if diff -q "$BUNDLE_DIR/scripts/statusline.mjs" "$sl" >/dev/null 2>&1; then
+            ok   "  up-to-date  scripts/statusline.mjs"
+        else
+            warn "  DRIFT       scripts/statusline.mjs  (vendored copy differs from bundle)"
+        fi
+    fi
+    echo
+    [ "$drift" -gt 0 ] && dim "to refresh drifted skills: $(basename "$0") update $repo"
+    echo "vendored up-to-date: $up · drifted: $drift · local-only: $local_only"
+}
+
+cmd_update() {
+    [ "$#" -eq 1 ] || { err "usage: update <repo>"; exit 1; }
+    local repo="$1"
+    [ -d "$repo" ] || { err "repo not found: $repo"; exit 1; }
+    local repo_abs
+    repo_abs="$(cd "$repo" && pwd)"
+    local skills_dir="$repo_abs/.claude/skills"
+    echo "==> $repo_abs"
+    if [ ! -d "$skills_dir" ]; then
+        dim "  no .claude/skills/ — nothing vendored from the bundle"
+        exit 0
+    fi
+    local to_update=""
+    for sk in "$skills_dir"/*/; do
+        [ -d "$sk" ] || continue
+        local clean="${sk%/}"
+        local name
+        name=$(basename "$clean")
+        local src="$BUNDLE_DIR/skills/$name"
+        if [ ! -d "$src" ]; then
+            dim  "  local-only  $name  (left alone)"
+        elif diff -rq "$src" "$clean" >/dev/null 2>&1; then
+            dim  "  up-to-date  $name"
+        else
+            warn "  DRIFT       $name:"
+            diff -ru "$clean" "$src" | sed 's/^/      /' || true
+            to_update="$to_update $name"
+        fi
+    done
+    if [ -z "$to_update" ]; then
+        echo
+        ok "all vendored skills already up to date — nothing to refresh"
+        exit 0
+    fi
+    echo
+    printf "  Refresh%s in %s? [y/N] " "$to_update" "$repo_abs"
+    read -r resp
+    if [[ "$resp" =~ ^[Yy]$ ]]; then
+        for name in $to_update; do
+            rm -rf "$skills_dir/$name"
+            cp -RL "$BUNDLE_DIR/skills/$name" "$skills_dir/$name"
+            ok "  refreshed $name"
+        done
+        dim "  done — now commit in $repo_abs"
+    else
+        dim "  cancelled"
+    fi
+}
+
 cmd_doctor() {
     local issues=0
     echo "== bundle ==>"
@@ -269,6 +375,8 @@ case "${1:-}" in
     init)    shift; cmd_init "$@" ;;
     push)    shift; cmd_push "$@" ;;
     unpush)  shift; cmd_unpush "$@" ;;
+    status)  shift; cmd_status "$@" ;;
+    update)  shift; cmd_update "$@" ;;
     doctor)  shift; cmd_doctor "$@" ;;
     -h|--help|help|"") usage ;;
     *)       err "unknown command: $1"; echo; usage; exit 1 ;;
