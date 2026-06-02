@@ -22,6 +22,7 @@
 
 import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -62,15 +63,22 @@ const sym = {
 // Git Info (cached 5s)
 // ---------------------------------------------------------------------------
 
-const GIT_CACHE_FILE = join(tmpdir(), 'claude-statusline-git.json');
 const GIT_CACHE_TTL_MS = 5000;
 
+// One cache file per cwd: concurrent sessions in different repos would
+// otherwise thrash a single shared file and defeat the TTL entirely.
+function gitCacheFile(cwd) {
+  const h = createHash('sha256').update(cwd).digest('hex').slice(0, 12);
+  return join(tmpdir(), `claude-statusline-git-${h}.json`);
+}
+
 function getGitInfoCached(cwd) {
+  const cacheFile = gitCacheFile(cwd);
   try {
-    if (existsSync(GIT_CACHE_FILE)) {
-      const stat = statSync(GIT_CACHE_FILE);
+    if (existsSync(cacheFile)) {
+      const stat = statSync(cacheFile);
       if (Date.now() - stat.mtimeMs < GIT_CACHE_TTL_MS) {
-        const cached = JSON.parse(readFileSync(GIT_CACHE_FILE, 'utf-8'));
+        const cached = JSON.parse(readFileSync(cacheFile, 'utf-8'));
         if (cached.cwd === cwd) return cached;
       }
     }
@@ -80,7 +88,7 @@ function getGitInfoCached(cwd) {
 
   const info = getGitInfo(cwd);
   try {
-    writeFileSync(GIT_CACHE_FILE, JSON.stringify({ ...info, cwd }), 'utf-8');
+    writeFileSync(cacheFile, JSON.stringify({ ...info, cwd }), 'utf-8');
   } catch {
     // Ignore write errors
   }
