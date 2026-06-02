@@ -13,7 +13,7 @@ Capture a correction from the user into `.claude/LESSONS.md` of the current proj
 
 **2. Read the prefix list** — each project defines its own ID prefixes at the top of `LESSONS.md`, under a header like `ID prefixes`, `Préfixes ID`, or equivalent. Pick the one that fits. If none fits, propose adding a new one (rare).
 
-**3. Build & insert the entry**:
+**3. Build & insert the entry** — write it in the same language as the existing `LESSONS.md` entries (French, English, or other), regardless of the conversation language:
 
 - **Title**: one-line factual rule (infinitive verb or short imperative).
 - **Rule**: the correct approach in one sentence, actionable. Include a short inline example if useful.
