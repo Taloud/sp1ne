@@ -126,6 +126,36 @@ Before the plugin existed, skills reached personal machines through symlinks (`l
 
 For repos still on the vendored model (not yet migrated to the plugin), `status`/`update` keep working as before — they never touch project-specific skills (reported `local-only`) and never add new ones.
 
+## Without Claude Code (Codex, Cursor, other agents)
+
+The plugin and the symlink model are Claude Code conveniences — the bundle itself is **plain files**. A skill is a directory holding a `SKILL.md` (markdown + YAML frontmatter `name`/`description`) and optional companion docs; nothing executes, nothing is Claude-specific in the content. Any agent that can read files can use it.
+
+Without plugin support, fall back to the file-based commands:
+
+```bash
+git clone https://github.com/Taloud/sp1ne ~/sp1ne
+
+# vendor a skill into a repo (works for any consumer — files travel with git)
+~/sp1ne/install push pr-description ~/work/team-repo
+# → .claude/skills/pr-description/SKILL.md, committed like any other file
+
+# resync later
+~/sp1ne/install status ~/work/team-repo
+~/sp1ne/install update ~/work/team-repo
+```
+
+Then wire the content into your tool's instruction mechanism:
+
+- **Codex / agents reading `AGENTS.md`** — reference the vendored files from `AGENTS.md` (e.g. "for PR descriptions, follow `.claude/skills/pr-description/SKILL.md`"), or paste the relevant SKILL.md bodies in.
+- **Cursor** — same idea from `.cursor/rules/` (one rule per skill, pointing at or embedding the SKILL.md).
+- **Anything else** — the SKILL.md *is* the prompt; inject it however your tool ingests instructions.
+
+Caveats for non-Claude consumers:
+
+- The frontmatter (`name`/`description`) and trigger phrasing are Claude Code conventions — other tools ignore them; what matters is the body.
+- A few skills assume Claude Code tooling (`gh` CLI calls, `.claude/LESSONS.md` paths); they degrade to "follow the written procedure manually".
+- The statusline and templates are Claude Code-specific (statusline hooks into `settings.json`; templates drop `CLAUDE.md` + `.claude/`) — for other agents, only the skills are worth consuming.
+
 ## Add a new skill
 
 See [`skills/README.md`](skills/README.md#add-a-new-skill) for the step-by-step.
