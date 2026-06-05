@@ -1,6 +1,58 @@
 # sp1ne
 
-The shared backbone for my Claude setup — single source for my skills + bootstrap templates, symlinked into every project.
+The shared backbone for my Claude setup — single source for my skills + bootstrap templates, distributed as a Claude Code plugin (or symlinked, legacy model).
+
+## Install as a Claude Code plugin (recommended)
+
+The repo doubles as a plugin marketplace (`.claude-plugin/marketplace.json`) whose single plugin is the repo itself — `skills/` is picked up natively.
+
+### Personal install (all your projects)
+
+```bash
+claude plugin marketplace add Taloud/sp1ne
+claude plugin install sp1ne@sp1ne
+```
+
+Skills become available everywhere as `/sp1ne:<skill>` (e.g. `/sp1ne:pr-description`).
+
+### Team distribution (per repo)
+
+In the consuming repo's `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "sp1ne": {
+      "source": { "source": "github", "repo": "Taloud/sp1ne" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "sp1ne@sp1ne": true
+  }
+}
+```
+
+Teammates are prompted to install the plugin when they trust the workspace — no vendored copies, no resync.
+
+### Updates
+
+No `version` field is set on purpose: the **git commit SHA is the version**, so every push to `main` is a new release. With `autoUpdate: true` consumers pick it up at the next Claude Code startup; otherwise `claude plugin update sp1ne@sp1ne`.
+
+### Local development of a skill
+
+The plugin is cached at install time (`~/.claude/plugins/cache/`), so local edits are **not** live. To test changes before pushing:
+
+```bash
+claude plugin marketplace add ~/personal/sp1ne   # local clone as a dev marketplace
+# edit skills/…
+claude plugin update sp1ne@sp1ne                  # refresh the cache from the working tree
+# then /reload-plugins inside a running session
+```
+
+## Legacy model — symlinks + vendored copies
+
+Everything below predates the plugin distribution and still works; prefer the plugin going forward.
 
 ## Initial setup
 

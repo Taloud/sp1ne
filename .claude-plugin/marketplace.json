@@ -1,0 +1,17 @@
+{
+  "name": "sp1ne",
+  "owner": {
+    "name": "Taloud",
+    "url": "https://github.com/Taloud"
+  },
+  "metadata": {
+    "description": "Marketplace for the sp1ne skills bundle"
+  },
+  "plugins": [
+    {
+      "name": "sp1ne",
+      "source": "./",
+      "description": "Generic Claude Code skills bundle: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, PRD/issues workflow, triage, handoff."
+    }
+  ]
+}
