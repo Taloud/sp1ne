@@ -1,0 +1,8 @@
+{
+  "name": "sp1ne",
+  "description": "Generic Claude Code skills bundle: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, PRD/issues workflow, triage, handoff.",
+  "author": {
+    "name": "Taloud",
+    "url": "https://github.com/Taloud"
+  }
+}

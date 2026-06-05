@@ -1,155 +1,179 @@
 # sp1ne
 
-The shared backbone for my Claude setup — single source for my skills + bootstrap templates, symlinked into every project.
+The shared backbone for my Claude Code setup — a single source of truth for generic skills, the statusline, and project bootstrap templates.
 
-## Initial setup
+Each component has its own distribution channel, matched to what Claude Code supports:
+
+| Component | Personal machines | Team repos | Why |
+|---|---|---|---|
+| **Skills** (`skills/`) | Claude Code **plugin** | plugin, declared in the repo's `.claude/settings.json` | plugins are the native distribution channel for skills |
+| **Statusline** (`scripts/statusline.mjs`) | symlink (`install scripts`) | vendored copy (`install update`) | plugins cannot configure the main `statusLine` setting |
+| **Templates** (`templates/`) | — | one-shot copy (`install init`) | bootstrap files are meant to diverge once dropped |
+
+## Skills — install as a Claude Code plugin
+
+sp1ne is distributed as a plugin of the **`taloud-plugins`** marketplace, whose public catalog lives in [Taloud/claude-plugins](https://github.com/Taloud/claude-plugins) — a pure index where each plugin keeps its own repo. This repo only carries its `.claude-plugin/plugin.json` (plus a dev-mirror `marketplace.json`, see [local development](#local-development-of-a-skill)); `skills/` is picked up natively.
+
+Skills surface as `/<skill>` in the slash menu, tagged `(sp1ne)`; their canonical id is `sp1ne:<skill>`.
+
+### Personal install (all your projects)
 
 ```bash
-cd ~/personal/sp1ne
-chmod +x install
-./install link
-./install scripts
-./install doctor   # verify the install is healthy
+claude plugin marketplace add Taloud/claude-plugins   # registers the "taloud-plugins" marketplace
+claude plugin install sp1ne@taloud-plugins
 ```
 
-- `link` creates symlinks `~/.claude/skills/<X>` → `~/personal/sp1ne/skills/<X>`. All my personal projects (no local copy) immediately see every edit made in the bundle.
-- `scripts` symlinks `~/.claude/scripts` → the bundle's `scripts/` directory (statusline + future helpers).
-- `doctor` validates that every bundle skill is linked, that `~/.claude/scripts` points to the bundle, and that `settings.json` references the bundle statusline.
+### Team distribution (per repo)
 
-## Commands
+In the consuming repo's `.claude/settings.json`:
 
+```json
+{
+  "extraKnownMarketplaces": {
+    "taloud-plugins": {
+      "source": { "source": "github", "repo": "Taloud/claude-plugins" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "sp1ne@taloud-plugins": true
+  }
+}
 ```
-install link
-install scripts
-install init [generic|symfony] [path]
-install push <skill> <repo> [<repo>...]
-install unpush <skill> <repo>
-install status <repo>
-install update <repo>
-install doctor
+
+Teammates are prompted to install the plugin when they trust the workspace — no vendored copies, no resync.
+
+The marketplace registry is **per user, keyed by name** (`~/.claude/plugins/known_marketplaces.json`), and the plugin itself is installed once at user scope. A repo only ships a *pointer*: if your machine already knows `taloud-plugins` (e.g. as a local directory, see below), your source is used — projects don't shadow it the way vendored skills shadow `~/.claude/skills/`.
+
+### Updates
+
+No `version` field is set on purpose: the **git commit SHA is the version**, so every push to `main` is a new release. With `autoUpdate: true` consumers pick it up at the next Claude Code startup; otherwise `claude plugin update sp1ne@taloud-plugins`.
+
+### Local development of a skill
+
+The plugin is cached at install time (`~/.claude/plugins/cache/`), so local edits are **not** live. This repo carries a **dev-mirror** `marketplace.json` declaring the *same* marketplace name as the public catalog, but with `source: "./"` — register your clone instead of the catalog:
+
+```bash
+claude plugin marketplace add ~/personal/sp1ne   # once — registers "taloud-plugins" → your clone
+# edit skills/…
+claude plugin update sp1ne@taloud-plugins         # refresh the cache from the working tree
+# then /reload-plugins inside a running session
 ```
 
-All commands are non-destructive. `init`, `link`, and `scripts` never touch an existing file. `push` and `unpush` ask for confirmation.
+Because the registry is keyed by name, your machine keeps resolving `taloud-plugins` to the local clone even inside repos that declare the GitHub catalog — same plugin id, your source wins on your machine, teammates get GitHub. Keep the two `marketplace.json` (catalog and dev mirror) declaring the same name.
 
-## Workflow
+Two caveats:
 
-### Bootstrap a new project
+- `plugin update` copies the **working tree**, uncommitted changes included — develop on a branch if you don't want half-finished edits live.
+- Keep the clone checked out on a branch that contains `.claude-plugin/` — without it, `plugin update` has no marketplace to read.
+
+### Experimental skill outside the bundle
+
+To try a skill without committing it to the bundle, create it under `~/.claude/skills/<name>/` — personal skills and plugin skills coexist (different ids, no shadowing). Once mature, move it into `sp1ne/skills/` and push.
+
+## Statusline
+
+Plugins can only configure `subagentStatusLine`, never the main `statusLine` — so the statusline keeps its own channel:
+
+- **Personal machines** — `./install scripts` symlinks `~/.claude/scripts` → the bundle's `scripts/`. Your `~/.claude/settings.json` points at it once, edits are live:
+
+  ```json
+  {
+    "statusLine": {
+      "type": "command",
+      "command": "node \"$HOME/.claude/scripts/statusline.mjs\"",
+      "padding": 0
+    }
+  }
+  ```
+
+- **Team repos** — a vendored copy at `.claude/scripts/statusline.mjs`, referenced via `$CLAUDE_PROJECT_DIR` in the repo's `.claude/settings.json` (project settings win over user settings, so teammates get it with zero setup). Resync after editing the bundle:
+
+  ```bash
+  ./install update ~/work/team-repo   # refreshes the vendored statusline (and any vendored skills) — diff + confirm
+  ```
+
+## Templates — bootstrap a project
 
 ```bash
 cd ~/work/my-symfony-api
-~/personal/sp1ne/install init symfony
+~/personal/sp1ne/install init symfony   # or: generic
 # → drops CLAUDE.md + .claude/{LESSONS,GLOSSARY,CODEMAP,settings}.json
-# → never touches .claude/skills/ (the project inherits the global symlinks)
+# → non-destructive: never overwrites an existing file
 ```
 
-### Edit a skill (auto-propagates to personal projects)
+Templates are starting points, not synced artifacts — once dropped, they belong to the project.
+
+## The `install` script
+
+```
+install scripts                       symlink ~/.claude/scripts -> bundle/scripts (statusline)
+install init [generic|symfony] [path] drop template files into a project
+install status <repo>                 report vendored skills/statusline: up-to-date / DRIFT / local-only
+install update <repo>                 refresh drifted vendored skills + statusline copy (diff + one confirm)
+install push <skill> <repo> [...]     vendor one bundle skill into a repo (deliberate pinning)
+install unpush <skill> <repo>         remove a repo's vendored copy
+install link                          [legacy] symlink ~/.claude/skills/* -> bundle/skills/*
+install doctor                        [legacy] check symlink install health
+```
+
+All commands are non-destructive; `push`, `unpush` and `update` ask for confirmation.
+
+### Vendored skills are now the exception
+
+Before the plugin existed, skills reached personal machines through symlinks (`link`) and team repos through vendored copies (`push`/`update`). The plugin replaces both for skills. Vendoring one remains a deliberate act for the rare cases the plugin can't cover:
+
+1. **Pinning** — the repo must freeze a skill's behaviour independently of bundle releases (a vendored copy *shadows* the plugin's short name).
+2. **No-plugin consumers** — ephemeral CI, environments where adding a marketplace isn't possible.
+
+For repos still on the vendored model (not yet migrated to the plugin), `status`/`update` keep working as before — they never touch project-specific skills (reported `local-only`) and never add new ones.
+
+## Without Claude Code (Codex, Cursor, other agents)
+
+The plugin and the symlink model are Claude Code conveniences — the bundle itself is **plain files**. A skill is a directory holding a `SKILL.md` (markdown + YAML frontmatter `name`/`description`) and optional companion docs; nothing executes, nothing is Claude-specific in the content. Any agent that can read files can use it.
+
+Without plugin support, fall back to the file-based commands:
 
 ```bash
-vim ~/personal/sp1ne/skills/grill-with-docs/SKILL.md
-# → IMMEDIATE effect on every personal project
-#   (no local copy — they inherit through the global symlink)
-git -C ~/personal/sp1ne commit -am "..."
+git clone https://github.com/Taloud/sp1ne ~/sp1ne
+
+# vendor a skill into a repo (works for any consumer — files travel with git)
+~/sp1ne/install push pr-description ~/work/team-repo
+# → .claude/skills/pr-description/SKILL.md, committed like any other file
+
+# resync later
+~/sp1ne/install status ~/work/team-repo
+~/sp1ne/install update ~/work/team-repo
 ```
 
-### Push a skill to a team repo
+Then wire the content into your tool's instruction mechanism:
 
-```bash
-~/personal/sp1ne/install push grill-with-docs ~/work/team-repo
-# → shows the diff, asks for confirmation, copies
-# → you then commit in the team repo
-cd ~/work/team-repo && git add .claude/skills/grill-with-docs && git commit -m "skill: bump grill-with-docs"
-```
+- **Codex / agents reading `AGENTS.md`** — reference the vendored files from `AGENTS.md` (e.g. "for PR descriptions, follow `.claude/skills/pr-description/SKILL.md`"), or paste the relevant SKILL.md bodies in.
+- **Cursor** — same idea from `.cursor/rules/` (one rule per skill, pointing at or embedding the SKILL.md).
+- **Anything else** — the SKILL.md *is* the prompt; inject it however your tool ingests instructions.
 
-### Refresh a team repo's vendored skills (after editing the bundle)
+Caveats for non-Claude consumers:
 
-```bash
-~/personal/sp1ne/install status ~/work/team-repo   # read-only: see what drifted
-~/personal/sp1ne/install update ~/work/team-repo   # refresh every drifted skill at once (diff + one confirm)
-cd ~/work/team-repo && git add .claude/skills && git commit -m "skill: sync vendored skills with sp1ne"
-```
+- The frontmatter (`name`/`description`) and trigger phrasing are Claude Code conventions — other tools ignore them; what matters is the body.
+- A few skills assume Claude Code tooling (`gh` CLI calls, `.claude/LESSONS.md` paths); they degrade to "follow the written procedure manually".
+- The statusline and templates are Claude Code-specific (statusline hooks into `settings.json`; templates drop `CLAUDE.md` + `.claude/`) — for other agents, only the skills are worth consuming.
 
-### Undo a local copy (back to global mode)
+## Add a new skill
 
-```bash
-~/personal/sp1ne/install unpush grill-with-docs ~/work/team-repo
-# → removes the repo-local copy, precedence falls back to the global symlink
-```
-
-## Link vs. push — the core trade-off
-
-Because a repo-local skill **shadows** the global one (see [precedence](#claude-code-precedence-good-to-know)), you can't have both active for the same skill. Every choice collapses to a single arbitrage:
-
-> **Auto-propagation** (the skill tracks the bundle) **vs. self-containment** (the skill travels with the repo).
-
-It's the same call you already make with dependencies:
-
-| sp1ne | Composer equivalent | Property |
-|---|---|---|
-| `link` (global symlink) | `composer global require` / system package | Shared, auto-updated — but the machine must have the bundle installed |
-| `push` (copy into repo) | a committed `vendor/` | Self-contained, travels with git, pinned — but you re-sync to update |
-
-A skill under `~/.claude/skills/` is **live** (tracks the bundle); one under `repo/.claude/skills/` is **vendored** (a snapshot you control). So `push` is the right tool only when:
-
-1. **Consumers don't have the bundle** — a repo shared with people who won't install sp1ne, an open-source project, ephemeral CI. The skill must ship with the repo or they never get it.
-2. **You want a pinned version** — frozen on the team side so a bundle refactor can't silently change behaviour mid-sprint. `push` re-shows the diff before overwriting: a deliberate refresh, on your terms.
-3. **The repo is published externally** — skills embedded for anyone who clones, zero dependency on your private setup.
-
-If none of those hold (every consumer has sp1ne, and you want your edits to propagate), use `link` and **don't** copy — a copy would only buy you drift.
-
-### Decision rule
-
-```
-Do all consumers have sp1ne installed?
-├─ No  → push (copy): the only way the skill reaches them
-└─ Yes → Do you want the team version frozen, independent of the bundle?
-         ├─ Yes → push (copy): a snapshot you refresh on your terms
-         └─ No  → link (symlink): auto-propagation   ← the default
-```
-
-`install init` never creates a copy: `link` is the default, `push` is the deliberate exception.
-
-## Mental model
-
-| Repo | Local skills copy? | Bundle edits propagate? |
-|---|---|---|
-| Personal projects | no | yes, instantly (via global symlink) |
-| Team repo | yes (deliberate) | no — needs `install push` |
-
-**Rule**: a local copy is a deliberate act to pin a stable version on the team side. `install init` never creates one.
-
-## Claude Code precedence (good to know)
-
-```
-{repo}/.claude/skills/<X>   wins over   ~/.claude/skills/<X>
-```
-
-So if a repo carries a local copy, that's what's used — even if the global symlink is newer. That's exactly what we want for pinning on the team side.
-
-## Seeing — and fixing — drift between bundle and a vendored repo
-
-For a repo that vendors skills (the `push` model), `status` reports which local copies have drifted, and `update` re-syncs them all at once:
-
-```bash
-install status ~/work/team-repo   # read-only: up-to-date / DRIFT / local-only, per skill
-install update ~/work/team-repo   # refresh every drifted vendored skill (diff + one confirm)
-```
-
-`status` is the repo-side analogue of `doctor`. `update` only refreshes skills present in **both** the repo and the bundle — it never adds a skill (that's `push`) and never touches project-specific skills (those show as `local-only`). A symlink-model repo (nothing vendored) reports everything as `local-only`, and `update` is a no-op.
-
-For a one-off single-skill diff:
-
-```bash
-diff -r ~/personal/sp1ne/skills/grill-with-docs ~/work/team-repo/.claude/skills/grill-with-docs
-```
+See [`skills/README.md`](skills/README.md#add-a-new-skill) for the step-by-step.
+Skills follow the standard Claude Code format: https://docs.claude.com/en/docs/claude-code
 
 ## Structure
 
 ```
 sp1ne/
 ├── README.md
-├── install                 # script (link, scripts, init, push, unpush, doctor)
+├── .claude-plugin/
+│   ├── marketplace.json    # dev mirror of the "taloud-plugins" marketplace (source ./) — public catalog: Taloud/claude-plugins
+│   └── plugin.json         # metadata — no version field: the commit SHA is the version
+├── install                 # script (scripts, init, status, update, push, unpush; legacy: link, doctor)
 ├── scripts/                # statusline + helpers (symlinked to ~/.claude/scripts)
-├── skills/                 # single source of truth — edit here = effect everywhere
+├── skills/                 # single source of truth — shipped by the plugin
 └── templates/
     ├── generic/            # any project, any language
     │   ├── CLAUDE.md
@@ -159,17 +183,9 @@ sp1ne/
         └── .claude/{LESSONS.md, GLOSSARY.md, CODEMAP.md, settings.json}
 ```
 
-## Add a new skill
-
-See [`skills/README.md`](skills/README.md#add-a-new-skill) for the step-by-step.
-Skills follow the standard Claude Code format: https://docs.claude.com/en/docs/claude-code
-
-## Experimental skill outside the bundle
-
-If you want to try out a skill without committing it to the bundle, create it directly under `~/.claude/skills/<name>-wip/`. `install link` is non-destructive: it won't touch a local skill that isn't a symlink. Once the skill is mature, move it into `sp1ne/skills/` and re-run `install link`.
-
 ## Requirements
 
 - macOS or Linux, bash.
+- Claude Code ≥ 2.x (plugin support).
 - Node.js ≥ 18 for the statusline (ESM `node:` imports).
 - `gh` CLI for skills that interact with GitHub (`to-prd`, `to-issues`, `triage`, etc.).

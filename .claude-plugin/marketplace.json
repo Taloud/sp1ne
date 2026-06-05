@@ -1,0 +1,17 @@
+{
+  "name": "taloud-plugins",
+  "owner": {
+    "name": "Taloud",
+    "url": "https://github.com/Taloud"
+  },
+  "metadata": {
+    "description": "Taloud's plugin index — catalogs Claude Code plugins, each living in its own repo"
+  },
+  "plugins": [
+    {
+      "name": "sp1ne",
+      "source": "./",
+      "description": "Generic Claude Code skills bundle: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, PRD/issues workflow, triage, handoff."
+    }
+  ]
+}
