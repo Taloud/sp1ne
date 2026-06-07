@@ -23,6 +23,21 @@ claude plugin marketplace add Taloud/claude-plugins   # registers the "taloud-pl
 claude plugin install sp1ne@taloud-plugins
 ```
 
+To pick up every push to `main` automatically (see [Updates](#updates)), opt the marketplace into auto-update in your **user** `~/.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "taloud-plugins": {
+      "source": { "source": "github", "repo": "Taloud/claude-plugins" },
+      "autoUpdate": true
+    }
+  }
+}
+```
+
+Without it, updates stay manual (`claude plugin update sp1ne@taloud-plugins`).
+
 ### Team distribution (per repo)
 
 In the consuming repo's `.claude/settings.json`:
@@ -75,7 +90,7 @@ To try a skill without committing it to the bundle, create it under `~/.claude/s
 
 Plugins can only configure `subagentStatusLine`, never the main `statusLine` — so the statusline keeps its own channel:
 
-- **Personal machines** — `./install scripts` symlinks `~/.claude/scripts` → the bundle's `scripts/`. Your `~/.claude/settings.json` points at it once, edits are live:
+- **Personal machines** — `./install scripts` symlinks `~/.claude/scripts` → the bundle's `scripts/`. The script **only creates the symlink** — it never edits your settings, so without the second step the statusline shows up nowhere. Add this to your `~/.claude/settings.json` yourself (once — after that, bundle edits are live through the symlink):
 
   ```json
   {
