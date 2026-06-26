@@ -1,6 +1,7 @@
 ---
 name: to-issues
-description: Break a PRD into independently-grabbable vertical-slice issues on GitHub, each attached as a native sub-issue of the parent PRD. Use when the user wants to convert a PRD (typically created by /to-prd) into implementation tickets, or break down work into sub-issues with proper hierarchy.
+description: Break a PRD into vertical-slice GitHub issues, each attached as a native sub-issue of the parent PRD.
+disable-model-invocation: true
 ---
 
 # to-issues
@@ -15,7 +16,7 @@ This skill assumes a **GitHub** repo where slices enter triage via the **`needs-
 gh label create needs-triage --description "Maintainer needs to evaluate" --color fbca04
 ```
 
-If the repo uses a different label name for the triage state (e.g. `bug:triage`), substitute it everywhere `needs-triage` is referenced below.
+If the repo uses a different triage-state label (e.g. `bug:triage`), substitute it throughout.
 
 The parent PRD itself is expected to carry a `prd` label (set by `/to-prd`); this skill only writes slices and does not need to create the `prd` label.
 
@@ -41,27 +42,22 @@ Fetch the parent PRD issue with `gh issue view <number> --repo <owner>/<repo> --
 
 Do not proceed without explicit confirmation when the label is missing.
 
-### 2. Explore the codebase (optional)
+### 2. Draft vertical slices
 
-If you have not already explored the codebase, do so. Issue titles and descriptions should use the project's domain glossary, and respect ADRs in the area you're touching.
-
-### 3. Draft vertical slices
-
-Break the plan into tracer-bullet issues. Each slice cuts through ALL integration layers end-to-end (schema, API, UI, tests) — NOT a horizontal slice of one layer.
-
-Slices may be HITL or AFK:
-- **HITL** — requires human interaction (architectural decision, design review)
-- **AFK** — can be implemented and merged without human interaction
-
-Prefer AFK over HITL where possible.
+Break the plan into tracer-bullet issues, using the project's domain glossary in titles and descriptions and respecting ADRs in the area you're touching.
 
 <vertical-slice-rules>
+- Each slice cuts through ALL integration layers end-to-end (schema, API, UI, tests) — NOT a horizontal slice of one layer
 - Each slice delivers a narrow but COMPLETE path through every layer
 - A completed slice is demoable or verifiable on its own
 - Prefer many thin slices over few thick ones
 </vertical-slice-rules>
 
-### 4. Quiz the user
+Slices may be HITL or AFK:
+- **HITL** — requires human interaction (architectural decision, design review)
+- **AFK** — can be implemented and merged without human interaction
+
+### 3. Quiz the user
 
 Present the proposed breakdown as a numbered list. For each slice show:
 
@@ -78,7 +74,7 @@ Ask:
 
 Iterate until the user approves the breakdown.
 
-### 5. Publish slices and attach as sub-issues
+### 4. Publish slices and attach as sub-issues
 
 **Confirm the publication step with the user before running any `gh` write commands** — creating issues is an external/shared action.
 
@@ -110,22 +106,7 @@ For each approved slice, **in dependency order (blockers first)** so real issue 
    - The sub-issues API expects an **integer**. Use `-F` (raw value), NOT `-f` (which sends a string and returns HTTP 422).
    - Use the **internal `id`** (a long integer like `4348893561`), NOT the human-readable issue `number`.
 
-### Sub-issue vs. blocking — keep them separate
-
-**Containment (sub-issue) and dependency (blocked-by) model different relationships. Do NOT conflate them:**
-
-| Relationship | Meaning | How to express |
-|---|---|---|
-| Slice belongs to PRD | Containment | `sub_issues` API attachment to PRD |
-| Slice X is blocked by slice Y | Dependency | Textual `## Blocked by #Y` in body |
-
-Reasons to keep dependencies textual instead of nesting blocked slices as sub-sub-issues:
-
-- The PRD's sub-issue progress summary needs every slice as a **direct** child to count correctly. Nesting hides slices from the count.
-- A slice can be blocked by **multiple** other slices; sub-issue parenthood is single-parent — the model breaks for multi-blocker cases.
-- A closed blocker with an open dependent looks visually "incomplete" in GitHub's UI when nested, even though the blocker is genuinely done.
-
-**Optional enhancement** for blocking relationships: in the *blocker* slice's body, add a task list referencing dependents (e.g. `- [ ] #1108 — slice 2 unblocks here`). When #1108 closes GitHub auto-checks the box. Pure ergonomics, not a substitute for the textual `## Blocked by`.
+Containment (sub-issue) and dependency (blocked-by) are different relationships — never nest a blocked slice as a sub-sub-issue. For the reasoning, see containment-vs-dependency.md.
 
 ## Issue body template
 
@@ -153,4 +134,4 @@ A concise description of this vertical slice. Describe the end-to-end behavior, 
 Or "None - can start immediately" if no blockers.
 ```
 
-Do NOT close or modify the parent PRD issue. Do NOT modify any external tracker entry.
+Do NOT close or modify the parent PRD issue.

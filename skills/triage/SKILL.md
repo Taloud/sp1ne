@@ -1,11 +1,10 @@
 ---
 name: triage
-description: Triage GitHub issues through a state machine driven by triage roles. Use when the user wants to create an issue, triage issues, review incoming bugs or feature requests, prepare issues for an AFK agent, or manage issue workflow.
+description: Triage GitHub issues through a state machine of category and state roles, preparing them for an AFK agent or human.
+disable-model-invocation: true
 ---
 
 # triage
-
-Move issues on the GitHub issue tracker through a small state machine of triage roles.
 
 Every comment or issue posted to GitHub during triage **must** start with an AI disclaimer. Match the issue's language:
 
@@ -107,7 +106,7 @@ For issues not created by `/to-issues` (raw user-filed issues), default to posti
 
 ## Quick state override
 
-If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
+If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Same `gh` write confirmation gate as step 5 of "Triage a specific issue" applies before acting. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
 
 ## Needs-info template
 

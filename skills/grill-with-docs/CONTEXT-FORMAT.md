@@ -1,4 +1,4 @@
-# CONTEXT.md Format (mode `ddd-vanilla`)
+# CONTEXT.md Format (mode `domain`)
 
 ## Structure
 
@@ -56,4 +56,4 @@ _Avoid_: Client, buyer, account
 Inference:
 - If `CONTEXT-MAP.md` exists → read it to find contexts.
 - If only a root `CONTEXT.md` exists → single context.
-- If neither exists → create a root `CONTEXT.md` lazily when the first term is resolved (in mode `ddd-vanilla`; in other modes follow the mode's destination instead).
+- If neither exists → create a root `CONTEXT.md` lazily when the first term is resolved (in mode `domain`; in other modes follow the mode's destination instead).

@@ -1,6 +1,7 @@
 ---
 name: grill-with-docs
-description: Grilling session that stress-tests a plan against the project's existing documentation, sharpens terminology, and updates docs (CONTEXT.md / GLOSSARY.md / LESSONS.md / ADRs) inline as decisions crystallise. Auto-detects the project's documentation layout (structured `.claude/`, domain-driven `CONTEXT.md`, light `CLAUDE.md`, or bootstrap). Use when the user wants to challenge a plan against their project's language and documented decisions.
+description: A relentless interview that stress-tests a plan against the project's own docs and updates them (glossary, lessons, ADRs) inline as decisions crystallise.
+disable-model-invocation: true
 ---
 
 # grill-with-docs
@@ -11,7 +12,6 @@ Interview the user relentlessly about every aspect of their plan until reaching 
 
 **Universal rules** (apply to every phase):
 - Ask questions **one at a time** and wait for the answer.
-- Explore the codebase to answer your own question rather than asking, when possible.
 - Update the relevant doc artefact **inline** as decisions crystallise — never batch at the end. Show the diff or insert briefly before moving on.
 
 </what-to-do>
@@ -77,7 +77,7 @@ Writes — see [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) for `CONTEXT.md`, [ADR-F
 
 Treat `CONTEXT.md` as a glossary only — devoid of implementation details. Not a spec, not a scratch pad.
 
-ADRs only when all three: (1) hard to reverse, (2) surprising without context, (3) result of a real trade-off. Skip if any criterion is missing.
+ADRs only when ADR-FORMAT.md's three criteria all hold.
 
 ### `light`
 
