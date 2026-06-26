@@ -80,3 +80,7 @@ test("createUser makes user retrievable", async () => {
   expect(retrieved.name).toBe("Alice");
 });
 ```
+
+## Test data: fake in the test, never escape-hatch in prod
+
+When a test needs an object that's tedious to build in full, use a partial or fake **inside the test** (a typed test factory, a partial cast confined to the test file) — keep the friction in the tests, not in production. Never reach for a production type-escape-hatch (`as any`, `@ts-ignore`, an untyped array, a loosened prod signature) just to make a test compile: that erases the very contract the test exists to protect.

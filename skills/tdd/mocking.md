@@ -1,21 +1,19 @@
 # When to Mock
 
-Mock at **system boundaries** only:
+Mocking is a last resort, not a default. The right test strategy depends on what kind of dependency sits across the seam. Classify it first, then pick the lightest stand-in that still exercises real behavior:
 
-- External APIs (payment, email, etc.)
-- Databases (sometimes - prefer test DB)
-- Time/randomness
-- File system (sometimes)
+| Category | Examples | Test strategy |
+|---|---|---|
+| **In-process** | pure computation, in-memory state, no I/O | No mock. Test through the interface directly. |
+| **Local-substitutable** | DB with a local stand-in (test DB, PGLite, SQLite), in-memory filesystem | No mock. Run the real stand-in in the test suite — the seam stays internal. |
+| **Remote but owned** | your own services across a network (microservices, internal APIs) | Define a **port** at the seam; inject an in-memory adapter in tests, the real transport (HTTP/gRPC/queue) in production. |
+| **True external** | third-party services you don't control (payment, SMS, email) | Inject the dependency as a port; tests provide a **mock** adapter. |
 
-Don't mock:
-
-- Your own classes/modules
-- Internal collaborators
-- Anything you control
+The rule the old "mock at system boundaries only" was reaching for: never mock your own classes, internal collaborators, or anything you control — deepen or substitute instead. Only categories 3 and 4 (things you can't run honestly in a test) justify a real mock — and even then you mock the *adapter*, not your logic.
 
 ## Designing for Mockability
 
-At system boundaries, design interfaces that are easy to mock:
+At the seams that genuinely need a stand-in (categories 3 and 4 above), design interfaces that are easy to mock:
 
 **1. Use dependency injection**
 

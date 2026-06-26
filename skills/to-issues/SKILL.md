@@ -42,11 +42,14 @@ Fetch the parent PRD issue with `gh issue view <number> --repo <owner>/<repo> --
 
 Do not proceed without explicit confirmation when the label is missing.
 
+**Explore the codebase and load the domain language.** If the conversation hasn't already done so, explore the repo to understand the current state and read the domain vocabulary (`CONTEXT.md` / `.claude/GLOSSARY.md`) so slice titles and bodies use canonical terms. For a large repo, delegate the exploration to a sub-agent so it doesn't crowd the context. Note any **prefactoring** opportunity — "make the change easy, then make the easy change" — and surface it as the first slice (or a pre-slice) when the change lands cleaner after a refactor.
+
 ### 2. Draft vertical slices
 
 Break the plan into tracer-bullet issues, using the project's domain glossary in titles and descriptions and respecting ADRs in the area you're touching.
 
 <vertical-slice-rules>
+- First decide whether the PRD even needs breaking down: split only when the slices have **separable failure modes** or can progress in parallel. If the work is one indivisible path, a single issue is the honest answer — don't manufacture slices.
 - Each slice cuts through ALL integration layers end-to-end (schema, API, UI, tests) — NOT a horizontal slice of one layer
 - Each slice delivers a narrow but COMPLETE path through every layer
 - A completed slice is demoable or verifiable on its own
@@ -119,7 +122,7 @@ A reference to the parent PRD issue: `#<PRD_NUMBER>`.
 
 ## What to build
 
-A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation.
+A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation. Describe it as *behavior* in the project's domain language — avoid specific file paths, line numbers, or internal module names, which rot before the slice is picked up. Exception: if a prototype or a prior decision produced a snippet that encodes the decision more precisely than prose can (state machine, reducer, schema, type shape), inline it trimmed to the decision-rich parts.
 
 ## Acceptance criteria
 

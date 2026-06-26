@@ -50,6 +50,8 @@ For each touched file in the diff, evaluate against the following. For a worked 
 ### Vocabulary drift (`structured` + `domain` + `light`)
 Terms used in code (identifiers, types, function names, comments, log messages, user-facing strings) that contradict the canonical term defined in the glossary.
 
+When a glossary entry lists `_Avoid_` aliases (banned synonyms for a canonical term), treat any use of one of those aliases as actionable drift, not a judgement call: name the alias found and the canonical term that should replace it (e.g. "uses `Client`, glossary mandates `Customer`"). This is the highest-confidence kind of vocabulary finding — the glossary has already pre-declared the wrong words.
+
 ### ADR contradiction (`structured` + `domain`)
 Changes that violate a documented architectural decision.
 

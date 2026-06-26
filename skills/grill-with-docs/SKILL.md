@@ -77,6 +77,8 @@ Writes — see [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) for `CONTEXT.md`, [ADR-F
 
 Treat `CONTEXT.md` as a glossary only — devoid of implementation details. Not a spec, not a scratch pad.
 
+This skill *changes* the domain model — challenging terms, sharpening language, writing decisions down as they crystallise. Merely reading `CONTEXT.md` for vocabulary is a one-line habit any skill can do (it's what `/check-conventions` does); don't mistake that passive consumption for the active grilling work here.
+
 ADRs only when ADR-FORMAT.md's three criteria all hold.
 
 ### `light`

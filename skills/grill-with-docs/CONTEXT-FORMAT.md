@@ -32,6 +32,13 @@ _Avoid_: Client, buyer, account
 - **Group terms under subheadings** when natural clusters emerge. If all terms belong to a single cohesive area, a flat list is fine.
 - **Write an example dialogue.** A short conversation between a dev and a domain expert that demonstrates how the terms interact naturally.
 
+## Maintenance
+
+- **Reuse glossary terms in other definitions.** Once a term is defined, use it (bolded) inside other definitions instead of paraphrasing — the glossary should be self-referential, not a flat list of strangers.
+- **Promote a term only once it has stabilised.** Don't enshrine a word the team is still arguing about; resolve it in conversation first, add it here when the meaning holds.
+- **Revise in place.** When a term's meaning shifts, edit the existing entry — don't append a second, contradicting definition. The glossary is the single current truth, not a changelog.
+- **On a re-run, fold new terms in.** When grilling resumes later, read the existing glossary first and reconcile new findings against it rather than restating; surface any term whose meaning drifted.
+
 ## Single vs multi-context repos
 
 **Single context (most repos):** One `CONTEXT.md` at the repo root.

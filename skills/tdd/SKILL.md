@@ -44,6 +44,7 @@ Before writing any code:
 - [ ] Confirm with user which behaviors to test (prioritize)
 - [ ] Identify opportunities for [deep modules](deep-modules.md) (small interface, deep implementation)
 - [ ] Design interfaces for [testability](interface-design.md)
+- [ ] For any non-obvious interface, sketch **two shapes under opposing constraints** (e.g. fewest-calls vs fewest-concepts) and pick deliberately — don't commit to the first shape that compiles
 - [ ] List the behaviors to test (not implementation steps)
 - [ ] Get user approval on the plan
 
@@ -70,7 +71,9 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 - [ ] Deepen modules (move complexity behind simple interfaces)
 - [ ] Apply SOLID principles where natural
 - [ ] Consider what new code reveals about existing code
-- [ ] Run tests after each refactor step
+- [ ] Re-run the relevant tests after each refactor step (see cadence below)
+
+**Test cadence.** Keep typecheck/compile running continuously, run the *targeted* test for the behavior you just touched on every step, and run the **full suite only once at the end** — not after every micro-step. A green targeted test plus a clean typecheck is enough to keep moving; the full suite is the final gate, not the inner loop.
 
 **Never refactor while RED.** Get to GREEN first.
 

@@ -20,13 +20,15 @@ Do NOT interview the user — synthesize what you already know. If genuinely mis
 
 If not already done in the conversation, explore the repo to ground the PRD in real code, respecting ADRs in the touched area.
 
-### 2. Sketch modules
+### 2. Sketch modules and testing seams
 
 Sketch the major modules to build or modify. Actively look for **deep modules** testable in isolation.
 
 > A deep module encapsulates a lot of functionality behind a simple, testable interface that rarely changes (as opposed to a shallow module).
 
-Check with the user that the modules match their expectations and which ones they want tests for.
+Then sketch the **seams** at which the feature will be tested. Deep modules say *what* to test; seams say *where* the test boundary sits. Prefer existing seams over new ones, use the highest seam possible, and minimise their number — the ideal is one. This is what `## Testing Decisions` records: the modules pick which logic earns a test, the seams pre-decide where the suite plugs in.
+
+Check with the user that the modules and seams match their expectations, and which ones they want tests for.
 
 ### 3. Write the PRD
 

@@ -25,7 +25,12 @@ Ordered list of the immediate next steps the fresh agent should take. Be specifi
 - "Run `/to-issues #1234` to break the PRD into slices"
 - "Resume the grilling session on the Termination value object — see ADR draft in `docs/adr/0042-...md`"
 
-Name the next skill in context where it helps (e.g. `/to-issues #1234`). If the fresh session is unsure where to start, it can run `/sp1ne` to see the whole flow.
+## Suggested skills
+
+The skills the fresh session should reach for, each with a one-line why. A dedicated section fills more reliably than a skill named in passing — and with the `/sp1ne` router and its interlocking flow, spelling them out saves the next session a lookup. Omit this section if no skill obviously applies.
+- `/to-issues #1234` — break the published PRD into vertical slices
+- `/grill-with-docs` — resume sharpening the Termination model
+- If unsure where to start, `/sp1ne` lists the whole flow.
 
 ## References
 

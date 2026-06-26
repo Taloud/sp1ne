@@ -25,7 +25,7 @@ A LONG, numbered list of user stories. Each in the format:
 1. As a mobile bank customer, I want to see balance on my accounts, so that I can make better informed decisions about my spending
 </user-story-example>
 
-This list should be extensive and cover all aspects of the feature.
+This list should be **extremely extensive** and cover every aspect of the feature — err on the side of too many user stories rather than too few.
 
 ## Implementation Decisions
 
@@ -46,6 +46,7 @@ Exception: if a prototype produced a snippet that encodes a decision more precis
 ## Testing Decisions
 
 - What makes a good test here (external behavior, not implementation details)
+- The seams at which the feature is tested (prefer existing seams, the highest possible, the fewest possible — ideally one)
 - Which modules will be tested
 - Prior art for the tests in the codebase
 

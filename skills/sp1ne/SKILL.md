@@ -41,6 +41,6 @@ Off the main flow — reach for these at a specific moment.
 
 Model-invoked skills: Claude reaches for them autonomously (or another skill does). Listed here so you know they aren't yours to summon.
 
-- **`/tdd`** — the red-green-refactor loop, when building a feature or fixing a bug test-first.
+- **`/tdd`** — the red-green-refactor loop, when building a feature or fixing a bug test-first. It works against the **seams the PRD already agreed on** (`/to-prd` step 2): the test boundary is decided upstream, so building a slice means filling in behind a known seam, not re-litigating the design. This is why there's no implement skill — free-build the slice, and reach for the loop where a pre-agreed seam needs covering.
 - **`/check-conventions`** — verifies a diff against the project's docs; fires proactively after a non-trivial change or before a PR.
 - **`/lessons-add`** — captures a lesson when you correct Claude on a generalisable, project-specific rule.
