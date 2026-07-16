@@ -1,15 +1,16 @@
 ---
 name: pr-description
-description: Generates a PR description (ready-to-paste markdown, in French) from the diff between the current branch and the base branch. Auto-detects Jira ticket, GitHub PRD/parent issue, impacted areas, and Playwright test URLs by reading the project's own config. Triggers on "description PR", "génère la description de la PR", "/pr-description", "PR description", "texte de PR", or any explicit PR-description request on the current branch.
+description: Generate a ready-to-paste PR description (French) from the current branch's diff, auto-detecting the Jira ticket, parent PRD, impacted areas, and Playwright test URLs from the repo's own config.
+disable-model-invocation: true
 ---
 
 # pr-description
 
-Produces a standard PR description in French from the current branch's diff against the project's base branch. The output is one ready-to-paste markdown block; instructions below are in English for consistency with the rest of the bundle.
+Produces a standard PR description in French from the current branch's diff against the project's base branch.
 
 Goal: **same presentation across every PR**. Project-specific values (sites, hosts, ports, content-types, Jira prefix) are **discovered from the repo**, never hardcoded.
 
-Final output = **one markdown block** ready to paste (template in §6), followed by a single line listing remaining placeholders to fill.
+Final output = **one fenced markdown code block** ready to paste (template in §8), so the raw `##` headings and single-line bullets survive copy-paste from the terminal verbatim. After it, a single line listing remaining placeholders to fill.
 
 ## 1. Collect diff
 
@@ -36,11 +37,20 @@ Use the detected base branch for every following command.
 
 Do **not** hardcode a prefix (`ABC`, `PROJ`, …) — read what's actually used in the branch / commits.
 
-## 3. PRD / parent issue
+## 3. PRD link & issue to close
 
 - Detect repo owner/name with `gh repo view --json nameWithOwner -q .nameWithOwner` (fallback: parse `git remote get-url origin`).
-- If branch matches `(?:agent/)?prd-(\d+)` or commits reference `#\d+` as a parent issue → build link `https://github.com/<owner>/<repo>/issues/<N>` and fetch the title via `gh issue view <N> --json title -q .title` (best effort, otherwise leave `— titre`).
-- If no PRD/parent issue is detected → **drop the entire `## 🧭 PRD` section** from the output.
+- Collect every issue reference from the branch name and commit subjects:
+  - branch patterns: `(?:agent/)?prd-(\d+)`, a bare issue number (`1234-…`, `issue-1234`, `feat/1234-…`), …
+  - commit subjects: any `#\d+`, especially `(?:closes|fixes|resolves)\s+#(\d+)`.
+- For each distinct number `N`, classify it with `gh issue view <N> --json labels,title` (best effort):
+  - **carries the `prd` label** → it's the **parent PRD container** → *link* it (never `Closes` it; a PRD container is closed only when all its slices are done, not by a single slice PR).
+  - **no `prd` label** → it's the **slice / work issue this PR resolves** → `Closes #N`.
+- A `prd-(\d+)` branch with no other reference → treat that number as the parent PRD.
+- Build the `## 🧭 PRD` section in this order:
+  1. `Lié au PRD : [#<PRD> — <titre>](https://github.com/<owner>/<repo>/issues/<PRD>)` — only if a parent PRD was found (title via `gh issue view`, else leave `— titre`).
+  2. `Closes #<slice>` — one line per slice/work issue the PR resolves (GitHub auto-closes it on merge).
+- If neither a PRD nor a closable issue is detected → **drop the entire `## 🧭 PRD` section** from the output.
 
 ## 4. Impacted areas & content-types (discovered, not hardcoded)
 
@@ -51,39 +61,7 @@ If no clear per-area split exists, skip area grouping and list URLs flat.
 
 ## 5. Playwright test URLs (the part that has to stay generic)
 
-Goal: build URLs **the same way the project's own Playwright setup builds them**, instead of hardcoding a host table.
-
-### 5.1 Find the base URL pattern
-
-In order, look for:
-
-1. **Playwright config** (`playwright.config.{js,ts,mjs,cjs}` at repo root or under `tests/`). Read it and extract:
-   - `use.baseURL` (string or expression)
-   - per-project `use.baseURL` if `projects: [...]` is used (one base URL per area/site)
-   - `webServer.url` as a fallback
-2. **Environment helper** the tests use (e.g. a `navigateTo(page, path)` helper). Open it (`grep -rE "navigateTo\s*=|export.*navigateTo" tests/ playwright/ -l`) and read how it composes the URL (host template, port, query handling).
-3. **An existing passing spec** in the repo (not necessarily one being modified). Extract a real `page.goto('https://…')` to see the concrete pattern.
-
-Record the discovered pattern as `BASE_URL_TEMPLATE` (may contain a `{site}` / `{area}` slot) and a `PORT`. Note any per-area exceptions you actually observe in the config — do **not** invent any.
-
-### 5.2 Extract the path from each modified spec
-
-For each modified `**/*.spec.{js,ts}`:
-
-```bash
-grep -nE "navigateTo\(\s*page\s*,\s*['\"]|page\.goto\(\s*['\"]" <spec>
-```
-
-- Take the **first** path in the top-level / `Desktop` describe block (or the first call if no describe split).
-- Keep any query string (`?todayDate=…`, etc.) verbatim.
-
-### 5.3 Build the final URL
-
-- If the spec calls `page.goto('https://…')` directly, **use that URL as-is**.
-- Otherwise, substitute the path into the discovered `BASE_URL_TEMPLATE`, using the area detected in §4 for the `{site}`/`{area}` slot.
-- Apply only exceptions you saw in the project's own config (e.g. a host alias like `foo → bar` if and only if it's encoded in playwright.config or the test helper).
-
-If no Playwright spec is modified → **drop the `## 🔗 URLs de test` section**.
+When the diff modifies any `**/*.spec.{js,ts}`, build the test URLs **the same way the project's own Playwright setup builds them** (discover the base-URL pattern, extract each spec's path, compose the URL) — see [`playwright-urls.md`](playwright-urls.md) for the procedure. If no Playwright spec is modified → **drop the `## 🔗 URLs de test` section**.
 
 ## 6. Description & "Comment tester"
 
@@ -106,6 +84,10 @@ Otherwise, list URLs flat under the section.
 
 ## 8. Final template (output stays in French)
 
+**Copy the raw markdown into the system clipboard** via Bash (`pbcopy` on macOS, `xclip -selection clipboard` or `xsel --clipboard --input` or `wl-copy` on Linux, `clip.exe` on Windows/WSL) using a **quoted** heredoc (`pbcopy <<'PRDESC' … PRDESC`). The single-quoted delimiter is mandatory: the body is full of backticks and `$()` and an unquoted `<<EOF` would shell-expand (or execute) them instead of copying them verbatim. Also display it in a fenced ```` ```md ```` block for review. After a successful copy, print `✅ Description copiée dans le presse-papier.`
+
+Never insert a hard line break inside a sentence or a bullet — one continuous line per bullet/paragraph, however long. Let GitHub soft-wrap.
+
 ```markdown
 ## 🎟️ Ticket Jira
 
@@ -118,6 +100,8 @@ Otherwise, list URLs flat under the section.
 ## 🧭 PRD
 
 Lié au PRD : [#XXXX — <titre>](https://github.com/<owner>/<repo>/issues/XXXX)
+
+Closes #XXXX
 
 ## 📝 Description
 
@@ -146,7 +130,7 @@ Lié au PRD : [#XXXX — <titre>](https://github.com/<owner>/<repo>/issues/XXXX)
 ```
 
 Optional sections to drop:
-- `## 🧭 PRD` if no PRD/parent issue was detected.
+- `## 🧭 PRD` if neither a PRD link nor a closable issue was detected. Inside it, drop the `Lié au PRD` line if no parent PRD was found, or the `Closes #XXXX` line(s) if no slice/work issue was found — keep whichever applies.
 - `## 🔗 URLs de test` if no Playwright spec was modified.
 - `## 🎨 Maquettes` placeholder stays (always asked).
 
@@ -164,3 +148,7 @@ A single line listing the remaining placeholders to fill (e.g. `À compléter : 
 - ❌ Inventing URLs: extract **only** from `navigateTo` / `page.goto` calls in modified specs.
 - ❌ Inflated checklist — keep the 3 template items.
 - ❌ Running tests / linters — this skill only produces text.
+- ❌ Emitting the description as live markdown (rendered `##` headings). Wrap it in a fenced code block so the literal `##` survives copy-paste.
+- ❌ Hard-wrapping a sentence or bullet across several lines — it pastes into GitHub with forced mid-sentence breaks. One logical line per bullet/paragraph.
+- ❌ `Closes`-ing the parent PRD container (the `prd`-labelled issue). Link it; `Closes` only the slice/work issue the PR resolves.
+- ❌ Unquoted heredoc (`<<EOF`) for the clipboard copy — the description's backticks/`$()` get shell-expanded. Always use `<<'PRDESC'`.

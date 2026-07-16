@@ -1,11 +1,10 @@
 ---
 name: triage
-description: Triage GitHub issues through a state machine driven by triage roles. Use when the user wants to create an issue, triage issues, review incoming bugs or feature requests, prepare issues for an AFK agent, or manage issue workflow.
+description: Triage GitHub issues through a state machine of category and state roles, preparing them for an AFK agent or human.
+disable-model-invocation: true
 ---
 
 # triage
-
-Move issues on the GitHub issue tracker through a small state machine of triage roles.
 
 Every comment or issue posted to GitHub during triage **must** start with an AI disclaimer. Match the issue's language:
 
@@ -17,6 +16,7 @@ Detect the language from the issue body (and `CLAUDE.md` as a fallback). When in
 ## Reference docs
 
 - [AGENT-BRIEF.md](AGENT-BRIEF.md) — how to write durable agent briefs
+- [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md) — how the `.out-of-scope/` rejection knowledge base works
 
 ## Roles
 
@@ -74,24 +74,23 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
 
 1. **Gather context.** Read the full issue (body, comments, labels, reporter, dates). Parse any prior triage notes so you don't re-ask resolved questions. Explore the codebase using the project's domain glossary, respecting ADRs in the area.
 
-   **Check for prior rejections** of the same concept. Search closed issues carrying both `wontfix` and `out-of-scope` labels:
-   ```bash
-   gh issue list --state closed --label wontfix --label out-of-scope --search "<keywords>"
-   ```
-   If a matching prior rejection exists, surface it to the maintainer before recommending: "Issue #N rejected this in <month> because <reason>. Do you still feel the same way?"
+   **Check for redundancy** — does the requested behavior already exist? Search the codebase by **domain concept**, not by the issue's wording (a request for "undo" may already ship as "revert"). Report where you looked. If it already exists, it's an *already-implemented* `wontfix` (step 5) — point to where it lives, kept distinct from a *rejected* request.
+
+   **Check for prior rejections** of the same concept. Read the `.out-of-scope/*.md` knowledge base at the repo root (see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)) and match by **concept similarity, not keywords** ("night theme" matches `dark-mode.md`). If a matching prior rejection exists, surface it before recommending: "This resembles `.out-of-scope/<concept>.md` — rejected before because `<reason>`. Do you still feel the same way?"
 
 2. **Recommend.** Tell the maintainer your category and state recommendation with reasoning, plus a brief codebase summary relevant to the issue. Wait for direction.
 
-3. **Reproduce (bugs only).** Before any grilling, attempt reproduction: read the reporter's steps, trace the relevant code, run tests or commands. Report what happened — successful repro with code path, failed repro, or insufficient detail (a strong `needs-info` signal). A confirmed repro makes a much stronger agent brief.
+3. **Verify the claim.** Before any grilling, check that the claim holds up. For a **bug**, reproduce it: read the reporter's steps, trace the relevant code, run tests or commands. For an **enhancement** whose premise is doubtful (e.g. "X is impossible today"), confirm the premise against the code before grilling — the request may rest on a misunderstanding. Report what happened — confirmed (with code path), failed, or insufficient detail (a strong `needs-info` signal). A confirmed verification makes a much stronger agent brief.
 
-4. **Grill (if needed).** If the issue needs fleshing out, run a `/grill-with-docs` session.
+4. **Grill (if needed).** If the issue needs fleshing out, run a `/grilling` session — interrogate it into shape one question at a time, sharpening domain terms against the project's glossary and updating `CONTEXT.md` / ADRs inline as decisions land (delegate any lesson-write to `/lessons-add`).
 
 5. **Apply the outcome.** **Confirm with the user before running any `gh` write commands** (label changes, comments, close) — these are external/shared actions.
    - `ready-for-agent` — see [Agent brief vs existing slice body](#agent-brief-vs-existing-slice-body) below.
    - `ready-for-human` — post a comment with the same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
    - `needs-info` — post triage notes (template below).
-   - `wontfix` (bug) — polite explanation, then close.
-   - `wontfix` (enhancement) — apply both `wontfix` and `out-of-scope` labels (creating `out-of-scope` via `gh label create out-of-scope --description "Rejected as out of project scope" --color e6e6e6` if missing), post a structured rejection comment that includes the reasoning and links any prior similar `out-of-scope` issues found during step 1, then close. The `out-of-scope` label makes future duplicates discoverable via the search query from step 1.
+   - `wontfix` (already implemented) — the behavior already exists (found in step 1). Point to where it lives, then close with the `wontfix` label. Do **not** write to `.out-of-scope/` — that KB is for *rejected* requests, not built ones, and polluting it would corrupt future redundancy and duplicate checks.
+   - `wontfix` (bug, rejected) — polite explanation, then close.
+   - `wontfix` (enhancement, rejected) — record the rejection in `.out-of-scope/<concept>.md` (append to the matching file or create it — see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)), post a rejection comment that states the reasoning and links the `.out-of-scope/` file, then close with the `wontfix` label. The knowledge base — not a label — is what makes future duplicates discoverable at step 1.
    - `needs-triage` — apply the role. Optional comment if there's partial progress.
 
 ### Agent brief vs existing slice body
@@ -107,7 +106,7 @@ For issues not created by `/to-issues` (raw user-filed issues), default to posti
 
 ## Quick state override
 
-If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
+If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Same `gh` write confirmation gate as step 5 of "Triage a specific issue" applies before acting. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
 
 ## Needs-info template
 

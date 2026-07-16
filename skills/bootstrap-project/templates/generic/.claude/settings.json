@@ -11,6 +11,9 @@
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(rg:*)"
+    ],
+    "deny": [
+      "Bash(git branch -D:*)"
     ]
   }
 }

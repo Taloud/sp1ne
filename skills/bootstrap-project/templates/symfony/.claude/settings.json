@@ -19,6 +19,9 @@
       "Bash(vendor/bin/phpstan analyse:*)",
       "Bash(composer show:*)",
       "Bash(composer outdated:*)"
+    ],
+    "deny": [
+      "Bash(git branch -D:*)"
     ]
   }
 }

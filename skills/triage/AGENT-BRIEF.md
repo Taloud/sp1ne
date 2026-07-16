@@ -2,11 +2,11 @@
 
 An agent brief is a structured comment posted on a GitHub issue when it moves to `ready-for-agent`. It is the authoritative specification that an AFK agent will work from. The original issue body and discussion are context — the agent brief is the contract.
 
-Every agent brief comment must start with the AI disclaimer in the issue's language (see `SKILL.md`).
-
 ## When to write one
 
-See `SKILL.md` — "Agent brief vs existing slice body". For slices already produced by `/to-issues` with concrete acceptance criteria, skip the brief and just upgrade the label. Write a full brief when grilling surfaced new constraints, when key interfaces emerged, or when the body's acceptance criteria are vague.
+See `SKILL.md` — "Agent brief vs existing slice body".
+
+Whatever the trigger, the brief comment — like every triage comment — must open with the AI disclaimer in the issue's language (see `SKILL.md`).
 
 ## Principles
 
@@ -16,9 +16,7 @@ The issue may sit in `ready-for-agent` for days or weeks. The codebase will chan
 
 - **Do** describe interfaces, types, and behavioral contracts
 - **Do** name specific types, function signatures, or config shapes that the agent should look for or modify
-- **Don't** reference file paths — they go stale
-- **Don't** reference line numbers
-- **Don't** assume the current implementation structure will remain the same
+- **Don't** reference file paths, line numbers, or the current implementation structure — they all go stale
 
 ### Behavioral, not procedural
 
@@ -157,28 +155,3 @@ next/prev page indicators) alongside the items.
 - Sorting / filtering parameters
 - Pagination of other endpoints
 ```
-
-### Bad agent brief
-
-```markdown
-## Agent Brief
-
-**Summary:** Fix the triage bug
-
-**What to do:**
-The triage thing is broken. Look at the main file and fix it.
-The function around line 150 has the issue.
-
-**Files to change:**
-- src/triage/handler.ts (line 150)
-- src/types.ts (line 42)
-```
-
-This is bad because:
-- No category
-- Vague description ("the triage thing is broken")
-- References file paths and line numbers that will go stale
-- No acceptance criteria
-- No scope boundaries
-- No description of current vs desired behavior
-- Missing AI disclaimer

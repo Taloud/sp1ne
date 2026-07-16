@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Test-driven development with red-green-refactor loop. Use when the user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
+description: "Red-green-refactor TDD: one test, one minimal implementation, repeat. Use when the user wants test-first development, asks to build a feature or fix a bug with tests, or mentions \"red-green-refactor\"."
 ---
 
 # tdd
@@ -17,28 +17,7 @@ See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking g
 
 ## Anti-Pattern: Horizontal Slices
 
-**DO NOT write all tests first, then all implementation.** This is "horizontal slicing" — treating RED as "write all tests" and GREEN as "write all code."
-
-This produces **crap tests**:
-
-- Tests written in bulk test _imagined_ behavior, not _actual_ behavior
-- You end up testing the _shape_ of things (data structures, function signatures) rather than user-facing behavior
-- Tests become insensitive to real changes — they pass when behavior breaks, fail when behavior is fine
-- You outrun your headlights, committing to test structure before understanding the implementation
-
-**Correct approach**: Vertical slices via tracer bullets. One test → one implementation → repeat. Each test responds to what you learned from the previous cycle. Because you just wrote the code, you know exactly what behavior matters and how to verify it.
-
-```
-WRONG (horizontal):
-  RED:   test1, test2, test3, test4, test5
-  GREEN: impl1, impl2, impl3, impl4, impl5
-
-RIGHT (vertical):
-  RED→GREEN: test1→impl1
-  RED→GREEN: test2→impl2
-  RED→GREEN: test3→impl3
-  ...
-```
+**Vertical slices via tracer bullets**: one test → one implementation → repeat. Never write all tests then all code — horizontal slicing produces crap tests. See [tests.md](tests.md).
 
 ## Phase 0 — Anchor in project docs
 
@@ -65,6 +44,7 @@ Before writing any code:
 - [ ] Confirm with user which behaviors to test (prioritize)
 - [ ] Identify opportunities for [deep modules](deep-modules.md) (small interface, deep implementation)
 - [ ] Design interfaces for [testability](interface-design.md)
+- [ ] For any non-obvious interface, sketch **two shapes under opposing constraints** (e.g. fewest-calls vs fewest-concepts) and pick deliberately — don't commit to the first shape that compiles
 - [ ] List the behaviors to test (not implementation steps)
 - [ ] Get user approval on the plan
 
@@ -72,34 +52,18 @@ Ask: "What should the public interface look like? Which behaviors are most impor
 
 **You can't test everything.** Confirm with the user exactly which behaviors matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
 
-### 2. Tracer Bullet
+### 2. Red-Green Loop
 
-Write ONE test that confirms ONE thing about the system:
-
-```
-RED:   Write test for first behavior → test fails
-GREEN: Write minimal code to pass → test passes
-```
-
-This is your tracer bullet — proves the path works end-to-end.
-
-### 3. Incremental Loop
-
-For each remaining behavior:
+For each behavior, one at a time:
 
 ```
 RED:   Write next test → fails
-GREEN: Minimal code to pass → passes
+GREEN: minimal code for the current test, nothing speculative → passes
 ```
 
-Rules:
+The first test is your tracer bullet — it proves the path end-to-end. Each test responds to what you learned from the previous cycle; keep tests focused on observable behavior.
 
-- One test at a time
-- Only enough code to pass current test
-- Don't anticipate future tests
-- Keep tests focused on observable behavior
-
-### 4. Refactor
+### 3. Refactor
 
 After all tests pass, look for [refactor candidates](refactoring.md):
 
@@ -107,11 +71,13 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 - [ ] Deepen modules (move complexity behind simple interfaces)
 - [ ] Apply SOLID principles where natural
 - [ ] Consider what new code reveals about existing code
-- [ ] Run tests after each refactor step
+- [ ] Re-run the relevant tests after each refactor step (see cadence below)
+
+**Test cadence.** Keep typecheck/compile running continuously, run the *targeted* test for the behavior you just touched on every step, and run the **full suite only once at the end** — not after every micro-step. A green targeted test plus a clean typecheck is enough to keep moving; the full suite is the final gate, not the inner loop.
 
 **Never refactor while RED.** Get to GREEN first.
 
-### 5. Close the loop
+### 4. Close the loop
 
 Once the implementation is settled:
 
@@ -121,9 +87,7 @@ Once the implementation is settled:
 ## Checklist Per Cycle
 
 ```
-[ ] Test describes behavior, not implementation
 [ ] Test uses public interface only
 [ ] Test would survive internal refactor
-[ ] Code is minimal for this test
 [ ] No speculative features added
 ```

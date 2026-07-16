@@ -1,18 +1,19 @@
 ---
 name: grill-with-docs
-description: Grilling session that stress-tests a plan against the project's existing documentation, sharpens terminology, and updates docs (CONTEXT.md / GLOSSARY.md / LESSONS.md / ADRs) inline as decisions crystallise. Auto-detects the project's documentation layout (structured `.claude/`, domain-driven `CONTEXT.md`, light `CLAUDE.md`, or bootstrap). Use when the user wants to challenge a plan against their project's language and documented decisions.
+description: A relentless interview that stress-tests a plan against the project's own docs and updates them (glossary, lessons, ADRs) inline as decisions crystallise.
+disable-model-invocation: true
 ---
 
 # grill-with-docs
 
+Run a **`/grilling`** session (the interview engine — relentless, one question at a time) and layer the project's documentation on top: detect the doc layout, sharpen the plan against the project's own glossary / lessons / ADRs, and update those docs **inline** as decisions crystallise.
+
 <what-to-do>
 
-Interview the user relentlessly about every aspect of their plan until reaching shared understanding. Walk down each branch of the design tree, resolving dependencies one at a time. For each question, provide a recommended answer.
-
-**Universal rules** (apply to every phase):
-- Ask questions **one at a time** and wait for the answer.
-- Explore the codebase to answer your own question rather than asking, when possible.
-- Update the relevant doc artefact **inline** as decisions crystallise — never batch at the end. Show the diff or insert briefly before moving on.
+The interview methodology lives in **`/grilling`** — run it. This skill adds the doc-aware layer:
+- **Detect the documentation layout** first (Phase 0), so you know what to read and where to write.
+- **Sharpen against the project's docs** — the mode-specific challenge axes in Phase 2, on top of `/grilling`'s generic behaviors.
+- **Write inline** — update the relevant doc artefact **as decisions crystallise**, never batched at the end. Show the diff or insert briefly before moving on.
 
 </what-to-do>
 
@@ -50,14 +51,9 @@ If a reference matching `[A-Z]+-\d+` is in the conversation (Jira/Linear style) 
 
 **Read-only on the tracker.** Do NOT update, transition, or comment on the ticket. The tracker remains the PO's source of truth.
 
-## Phase 1 — Grilling behaviors (all modes)
+## Phase 1 — Grilling behaviors
 
-| Behavior | When | Example |
-|---|---|---|
-| **Challenge glossary conflict** | a user term contradicts the existing glossary | _"Your glossary defines 'cancellation' as X, but you seem to mean Y — which is it?"_ |
-| **Sharpen fuzzy language** | user uses vague or overloaded terms | _"You're saying 'account' — do you mean Customer or User?"_ |
-| **Stress-test scenarios** | a domain relationship is being decided | invent specific edge cases that force precision on boundaries |
-| **Cross-reference code** | user claims X works a certain way | check the code; if contradiction, surface immediately |
+The core grilling behaviors — challenge glossary conflicts, sharpen fuzzy language, stress-test scenarios, cross-reference the code — live in **`/grilling`**. Run that session; the Phase 2 extras below sharpen it against the project's own docs.
 
 ## Phase 2 — Mode-specific extras
 
@@ -77,7 +73,9 @@ Writes — see [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) for `CONTEXT.md`, [ADR-F
 
 Treat `CONTEXT.md` as a glossary only — devoid of implementation details. Not a spec, not a scratch pad.
 
-ADRs only when all three: (1) hard to reverse, (2) surprising without context, (3) result of a real trade-off. Skip if any criterion is missing.
+This skill *changes* the domain model — challenging terms, sharpening language, writing decisions down as they crystallise. Merely reading `CONTEXT.md` for vocabulary is a one-line habit any skill can do (it's what `/check-conventions` does); don't mistake that passive consumption for the active grilling work here.
+
+ADRs only when ADR-FORMAT.md's three criteria all hold.
 
 ### `light`
 
@@ -127,6 +125,6 @@ You:   Next: where does `reason` live — on `Order` directly, or in a new
 
 ## Notes
 
-- Works hand-in-hand with `lessons-add` (the LESSON-writer) and any ticket-fetching skill the user has set up.
+- Builds on `/grilling` (the interview engine) and works hand-in-hand with `lessons-add` (the LESSON-writer) and any ticket-fetching skill the user has set up.
 
 </supporting-info>
