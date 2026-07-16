@@ -1,6 +1,6 @@
 # Skills
 
-Single source of truth for my Claude skills. Edits here propagate instantly to every personal project (via the global symlinks created by `install link`). Team repos opt in deliberately via `install push`.
+Single source of truth for my Claude skills, shipped as the `sp1ne` Claude Code plugin (marketplace `taloud-plugins`). Every push to `main` is a release; consumers on `autoUpdate` pick it up at the next startup. See the [root README](../README.md) for install and local plugin development.
 
 ## Catalog
 
@@ -17,6 +17,7 @@ Each skill is **user-invoked** (you type its slash-command; `disable-model-invoc
 | `triage` | Triage GitHub issues through a small state machine of roles. |
 | `handoff` | Compact the current conversation into a handoff document for a fresh session. |
 | `pr-description` | Generate a PR description from the current branch's diff. Auto-detects Jira, parent issue, impacted areas, and Playwright URLs from the project's own config. Output in French. |
+| `bootstrap-project` | Scaffold a new project's `CLAUDE.md` + `.claude/` docs from a template (`generic` or `symfony`). Non-destructive. Replaces the old `install init`. |
 
 ### Model-invoked
 
@@ -25,6 +26,7 @@ Each skill is **user-invoked** (you type its slash-command; `disable-model-invoc
 | `tdd` | Test-driven development with the red-green-refactor loop, anchored in project docs. |
 | `check-conventions` | Verify a diff against the project's documented conventions (glossary, ADRs, lessons). Read-only. |
 | `lessons-add` | Append a structured lesson to `.claude/LESSONS.md` when the user corrects Claude on a generalisable rule. |
+| `grilling` | The interview engine — relentless, one question at a time. Invoked by `/grill-with-docs` and `/triage`, and reusable on its own to stress-test any plan. |
 
 ## Add a new skill
 
@@ -39,8 +41,9 @@ description: Triggers and capabilities (used by Claude to decide when to invoke)
 # Skill content (instructions, what-to-do, supporting-info...)
 EOF
 
-../install link
 git add my-skill && git commit -m "skill: add my-skill"
+# the plugin picks up skills/ natively — in local plugin dev,
+# refresh the cache with: claude plugin update sp1ne@taloud-plugins
 ```
 
 **Pick the invocation up front.** If only *you* will ever run it, add `disable-model-invocation: true` to the frontmatter and write a one-line, human-facing `description` (no trigger lists). If Claude should reach for it on its own — or another skill must — omit the flag and write a trigger-rich, model-facing `description`. See the taxonomy below.

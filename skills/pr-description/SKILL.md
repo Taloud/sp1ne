@@ -84,7 +84,7 @@ Otherwise, list URLs flat under the section.
 
 ## 8. Final template (output stays in French)
 
-**Copy the raw markdown into the system clipboard** via Bash (`pbcopy` on macOS, `xclip -selection clipboard` or `xsel --clipboard --input` or `wl-copy` on Linux, `clip.exe` on Windows/WSL) using a heredoc. Also display it in a fenced ```` ```md ```` block for review. After a successful copy, print `✅ Description copiée dans le presse-papier.`
+**Copy the raw markdown into the system clipboard** via Bash (`pbcopy` on macOS, `xclip -selection clipboard` or `xsel --clipboard --input` or `wl-copy` on Linux, `clip.exe` on Windows/WSL) using a **quoted** heredoc (`pbcopy <<'PRDESC' … PRDESC`). The single-quoted delimiter is mandatory: the body is full of backticks and `$()` and an unquoted `<<EOF` would shell-expand (or execute) them instead of copying them verbatim. Also display it in a fenced ```` ```md ```` block for review. After a successful copy, print `✅ Description copiée dans le presse-papier.`
 
 Never insert a hard line break inside a sentence or a bullet — one continuous line per bullet/paragraph, however long. Let GitHub soft-wrap.
 
@@ -151,3 +151,4 @@ A single line listing the remaining placeholders to fill (e.g. `À compléter : 
 - ❌ Emitting the description as live markdown (rendered `##` headings). Wrap it in a fenced code block so the literal `##` survives copy-paste.
 - ❌ Hard-wrapping a sentence or bullet across several lines — it pastes into GitHub with forced mid-sentence breaks. One logical line per bullet/paragraph.
 - ❌ `Closes`-ing the parent PRD container (the `prd`-labelled issue). Link it; `Closes` only the slice/work issue the PR resolves.
+- ❌ Unquoted heredoc (`<<EOF`) for the clipboard copy — the description's backticks/`$()` get shell-expanded. Always use `<<'PRDESC'`.

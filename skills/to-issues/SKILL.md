@@ -109,7 +109,7 @@ For each approved slice, **in dependency order (blockers first)** so real issue 
    - The sub-issues API expects an **integer**. Use `-F` (raw value), NOT `-f` (which sends a string and returns HTTP 422).
    - Use the **internal `id`** (a long integer like `4348893561`), NOT the human-readable issue `number`.
 
-Containment (sub-issue) and dependency (blocked-by) are different relationships — never nest a blocked slice as a sub-sub-issue. For the reasoning, see containment-vs-dependency.md.
+Containment (sub-issue) and dependency (blocked-by) are different relationships — never nest a blocked slice as a sub-sub-issue. For the reasoning, see [`containment-vs-dependency.md`](containment-vs-dependency.md).
 
 ## Issue body template
 

@@ -36,7 +36,7 @@ Write the PRD using the template in [`prd-template.md`](prd-template.md). Reuse 
 
 If a grilling session (`/grill-with-docs`) produced ADRs or `CONTEXT.md` updates relevant to this PRD, reference them by path in `## Implementation Decisions` rather than restating their content.
 
-**If the `$PRD_DIR` environment variable is set**, also write the PRD markdown to a file there (creating the directory if needed). This gives the user a persistent local copy alongside the published GitHub issue. Filename convention: `prd-<kebab-subject>-<YYYYMMDD-HHMM>.md`. If `$PRD_DIR` is unset or empty, skip this — the GitHub issue remains the source of truth.
+**If the `$PRD_DIR` environment variable is set**, also write the PRD markdown to a file there (creating the directory if needed). This gives the user a persistent local copy alongside the published GitHub issue. Filename convention: `prd-<kebab-subject>-<YYYYMMDD-HHMM>.md`. Quote the path when creating it (`mkdir -p "$PRD_DIR"`) and don't overwrite an existing file — suffix `-2` on a collision. If `$PRD_DIR` is unset or empty, skip this — the GitHub issue remains the source of truth.
 
 ### 4. Publish the PRD as a GitHub issue
 

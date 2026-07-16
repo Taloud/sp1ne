@@ -19,19 +19,9 @@
       "Bash(vendor/bin/phpstan analyse:*)",
       "Bash(composer show:*)",
       "Bash(composer outdated:*)"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-dangerous-git.sh"
-          }
-        ]
-      }
+    ],
+    "deny": [
+      "Bash(git branch -D:*)"
     ]
   }
 }

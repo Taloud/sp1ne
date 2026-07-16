@@ -82,7 +82,7 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
 
 3. **Verify the claim.** Before any grilling, check that the claim holds up. For a **bug**, reproduce it: read the reporter's steps, trace the relevant code, run tests or commands. For an **enhancement** whose premise is doubtful (e.g. "X is impossible today"), confirm the premise against the code before grilling — the request may rest on a misunderstanding. Report what happened — confirmed (with code path), failed, or insufficient detail (a strong `needs-info` signal). A confirmed verification makes a much stronger agent brief.
 
-4. **Grill (if needed).** If the issue needs fleshing out, run a `/grill-with-docs` session.
+4. **Grill (if needed).** If the issue needs fleshing out, run a `/grilling` session — interrogate it into shape one question at a time, sharpening domain terms against the project's glossary and updating `CONTEXT.md` / ADRs inline as decisions land (delegate any lesson-write to `/lessons-add`).
 
 5. **Apply the outcome.** **Confirm with the user before running any `gh` write commands** (label changes, comments, close) — these are external/shared actions.
    - `ready-for-agent` — see [Agent brief vs existing slice body](#agent-brief-vs-existing-slice-body) below.

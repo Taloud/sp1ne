@@ -6,6 +6,8 @@ An agent brief is a structured comment posted on a GitHub issue when it moves to
 
 See `SKILL.md` — "Agent brief vs existing slice body".
 
+Whatever the trigger, the brief comment — like every triage comment — must open with the AI disclaimer in the issue's language (see `SKILL.md`).
+
 ## Principles
 
 ### Durability over precision

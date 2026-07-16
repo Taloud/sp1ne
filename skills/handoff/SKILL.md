@@ -9,9 +9,9 @@ argument-hint: "What will the next session be used for?"
 
 ## Output location and naming
 
-Save the document to the OS temporary directory (`$TMPDIR` on macOS, typically `/var/folders/...`). **Do not** save it inside the user's workspace.
+Save the document to the OS temporary directory (`$TMPDIR` on macOS, typically `/var/folders/...`). **Do not** save it inside the user's workspace on your own — unless the user has explicitly opted into a location via `$HANDOFF_DIR` (below).
 
-**If the `$HANDOFF_DIR` environment variable is set**, also write a copy of the same document there (creating the directory if needed). This gives the user a stable, persistent location for handoffs in addition to the ephemeral temp copy. Write to both locations with the same filename; if `$HANDOFF_DIR` is unset or empty, only write to `$TMPDIR`.
+**If the `$HANDOFF_DIR` environment variable is set**, also write a copy of the same document there (creating the directory if needed). This gives the user a stable, persistent location for handoffs in addition to the ephemeral temp copy. Write to both locations with the same filename; if `$HANDOFF_DIR` is unset or empty, only write to `$TMPDIR`. Quote the path when creating it (`mkdir -p "$HANDOFF_DIR"`) and never clobber an existing file — suffix `-2` on a name collision. If `$HANDOFF_DIR` resolves inside the repo, mention it may be committed (suggest gitignoring it).
 
 Filename convention: `handoff-<kebab-topic>-<YYYYMMDD-HHMM>.md`
 

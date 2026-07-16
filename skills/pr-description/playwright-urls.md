@@ -29,5 +29,5 @@ grep -nE "navigateTo\(\s*page\s*,\s*['\"]|page\.goto\(\s*['\"]" <spec>
 ## 3. Build the final URL
 
 - If the spec calls `page.goto('https://…')` directly, **use that URL as-is**.
-- Otherwise, substitute the path into the discovered `BASE_URL_TEMPLATE`, using the area detected in §4 for the `{site}`/`{area}` slot.
+- Otherwise, substitute the path into the discovered `BASE_URL_TEMPLATE`, using the impacted area detected earlier (parent `SKILL.md`, §4 *Impacted areas*) for the `{site}`/`{area}` slot.
 - Apply only exceptions you saw in the project's own config (e.g. a host alias like `foo → bar` if and only if it's encoded in playwright.config or the test helper).

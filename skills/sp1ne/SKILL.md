@@ -28,7 +28,7 @@ Keep steps 1–3 in **one unbroken context window** — don't compact or clear u
 
 A starting situation that generates work, then merges onto the main flow.
 
-- **Work arriving from outside** (a filed bug or feature request, not a conversation) → **`/triage`**. It moves issues through the triage-role state machine, runs a `/grill-with-docs` session when an issue needs fleshing out, and produces agent-ready slices. Triage is only for issues you **didn't** create — issues `/to-issues` produced are already ready, so don't re-triage them.
+- **Work arriving from outside** (a filed bug or feature request, not a conversation) → **`/triage`**. It moves issues through the triage-role state machine, runs a `/grilling` session when an issue needs fleshing out, and produces agent-ready slices. Triage is only for issues you **didn't** create — issues `/to-issues` produced are already ready, so don't re-triage them.
 
 ## Standalone
 
@@ -36,6 +36,7 @@ Off the main flow — reach for these at a specific moment.
 
 - **`/handoff`** — when a session is full or you need to branch off, compact the conversation into a markdown doc, then open a **fresh session** and reference that file. The bridge between context windows. (Use the built-in `/compact` instead when you want to stay in the same conversation across a phase break — `/handoff` forks, `/compact` continues.)
 - **`/pr-description`** — French, paste-ready PR text from the current branch's diff, right before you open the PR.
+- **`/bootstrap-project`** — at the very start of a new project: drop a `CLAUDE.md` + `.claude/` docs skeleton (`generic` or `symfony`) so the doc-aware skills (`/grill-with-docs`, `/check-conventions`, `/tdd`) have something to anchor on. Non-destructive.
 
 ## These fire on their own — don't type them
 
@@ -44,3 +45,4 @@ Model-invoked skills: Claude reaches for them autonomously (or another skill doe
 - **`/tdd`** — the red-green-refactor loop, when building a feature or fixing a bug test-first. It works against the **seams the PRD already agreed on** (`/to-prd` step 2): the test boundary is decided upstream, so building a slice means filling in behind a known seam, not re-litigating the design. This is why there's no implement skill — free-build the slice, and reach for the loop where a pre-agreed seam needs covering.
 - **`/check-conventions`** — verifies a diff against the project's docs; fires proactively after a non-trivial change or before a PR.
 - **`/lessons-add`** — captures a lesson when you correct Claude on a generalisable, project-specific rule.
+- **`/grilling`** — the interview engine: relentless, one question at a time. It powers `/grill-with-docs` and the grilling step of `/triage`, and Claude reaches for it on a plain "grill my plan". You normally type `/grill-with-docs` instead — that's grilling *with* doc capture.
