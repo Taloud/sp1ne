@@ -30,7 +30,7 @@ When hesitating between two tiers: take the cheaper if failure is cheap to detec
 
 1. **Decompose** into subtasks with clear boundaries and a definition of done each. Split aggressively — a task that "needs the top tier" is often a mid-tier core wrapped in cheap chores: the hard part is often one decision, and everything downstream of it is sonnet/haiku work. Pieces that still route high after splitting are correct routing, not failure.
 2. **Map dependencies and route** each subtask with the table above — independent subtasks run in parallel, dependent ones in sequence.
-3. **Brief.** Each subagent prompt must be self-contained — it shares none of your context. Include: goal, exact file paths, constraints and project conventions, what *not* to touch, expected output format, definition of done. A cheap model with a great brief beats an expensive model with a vague one.
+3. **Brief.** Each subagent prompt must be self-contained — it shares none of your context. Include: goal, exact file paths, constraints and project conventions, what *not* to touch, expected output format, definition of done. **Always write briefs in English**, whatever the conversation language — it costs fewer tokens and prompts more reliably; ask for the subagent's output in English too, since only you read it. A cheap model with a great brief beats an expensive model with a vague one.
 4. **Dispatch** independent subtasks in a single message so they run concurrently. Never let two agents edit the same files at once (or isolate them with `isolation: "worktree"`). Integrate only real results — never assume what a still-running agent will return.
 5. **Verify** before building on any result: run the tests it claims pass, read the diff it produced, spot-check the facts it asserts.
 6. **Escalate on failure**: retry once at the same tier — continue the *same* agent via SendMessage with the failure described, its context is already paid for — then one tier up as a fresh agent with the attempts summarized, capped at your own tier (subagent if separable, inline if not). Repeated escalations on the same kind of subtask mean your routing was too optimistic: recalibrate the remaining assignments.
@@ -45,4 +45,4 @@ When hesitating between two tiers: take the cheaper if failure is cheap to detec
 
 ## Report
 
-Answer in the conversation's language. After the deliverable, append a delegation ledger — subtask | model | attempts | outcome — noting every escalation and anything done inline (with why). The ledger is how the user audits the routing.
+The report is the only place the conversation's language returns — everything upstream ran in English; answer the user in theirs. After the deliverable, append a delegation ledger — subtask | model | attempts | outcome — noting every escalation and anything done inline (with why). The ledger is how the user audits the routing.
