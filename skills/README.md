@@ -18,6 +18,7 @@ Each skill is **user-invoked** (you type its slash-command; `disable-model-invoc
 | `handoff` | Compact the current conversation into a handoff document for a fresh session. |
 | `pr-description` | Generate a PR description from the current branch's diff. Auto-detects Jira, parent issue, impacted areas, and Playwright URLs from the project's own config. Output in French. |
 | `bootstrap-project` | Scaffold a new project's `CLAUDE.md` + `.claude/` docs from a template (`generic` or `symfony`). Non-destructive. Replaces the old `install init`. |
+| `orchestrator` | Execute a task by routing each subtask to the best-fit model tier, never above the session model — cheap tiers for routine work, the ceiling tier for the genuinely hard pieces; the session model plans, routes, verifies, and integrates. |
 
 ### Model-invoked
 

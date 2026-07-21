@@ -37,6 +37,7 @@ Off the main flow — reach for these at a specific moment.
 - **`/handoff`** — when a session is full or you need to branch off, compact the conversation into a markdown doc, then open a **fresh session** and reference that file. The bridge between context windows. (Use the built-in `/compact` instead when you want to stay in the same conversation across a phase break — `/handoff` forks, `/compact` continues.)
 - **`/pr-description`** — French, paste-ready PR text from the current branch's diff, right before you open the PR.
 - **`/bootstrap-project`** — at the very start of a new project: drop a `CLAUDE.md` + `.claude/` docs skeleton (`generic` or `symfony`) so the doc-aware skills (`/grill-with-docs`, `/check-conventions`, `/tdd`) have something to anchor on. Non-destructive.
+- **`/orchestrator`** — when a task is big and you're on an expensive model: it executes the task by routing each subtask to the best-fit tier at or below the session model — cheaper models for routine work, your current tier for the genuinely hard pieces — keeping the session model as planner, router, and verifier.
 
 ## These fire on their own — don't type them
 

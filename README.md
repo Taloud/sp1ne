@@ -1,6 +1,6 @@
 # sp1ne
 
-A **Claude Code plugin** — a bundle of generic skills: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, the PRD/issues workflow, triage, handoff, and project bootstrap.
+A **Claude Code plugin** — a bundle of generic skills: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, the PRD/issues workflow, triage, handoff, project bootstrap, and cost-optimized orchestration.
 
 The repo *is* the plugin. The only things that aren't shipped by the plugin are two Claude-Code limitations the plugin model can't cover: the **statusline** (plugins can't set the main `statusLine`) and **project scaffolding** (plugins can't write files into your repo) — the latter is handled by a skill, the former needs one manual settings line. Both are below.
 
@@ -147,6 +147,7 @@ sp1ne/
     ├── bootstrap-project/  # /bootstrap-project — scaffolds CLAUDE.md + .claude/ (templates/ inside)
     ├── grill-with-docs/  to-prd/  to-issues/  triage/  handoff/
     ├── pr-description/  check-conventions/  lessons-add/  tdd/
+    ├── orchestrator/       # /orchestrator — best-fit model delegation, capped at the session model
     └── sp1ne/              # the router — "which skill fits my situation?"
 ```
 
