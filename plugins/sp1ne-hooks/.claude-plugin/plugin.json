@@ -1,0 +1,8 @@
+{
+  "name": "sp1ne-hooks",
+  "description": "Opt-in guardrail hooks, kept separate from sp1ne so consumers choose them explicitly: deny-ssh denies any Bash command invoking ssh; deny-risky-git-push denies force pushes, tag pushes and pushes to main/master/develop.",
+  "author": {
+    "name": "Taloud",
+    "url": "https://github.com/Taloud"
+  }
+}

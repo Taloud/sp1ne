@@ -42,6 +42,7 @@ When hesitating between two tiers: take the cheaper if failure is cheap to detec
 - **Fan-out.** Many similar small items (N files to convert, N functions to document) → one cheap agent per item, dispatched in parallel, never one expensive agent for the batch.
 - **Big-input reading.** Summarizing or filtering bulk input (logs, long docs, wide diffs) is cheap-tier work: the expensive context should only hold the distillate.
 - **High-stakes generation.** Have one agent generate and a *separate* agent adversarially review — two cheap opinions beat one expensive draft, and you still arbitrate.
+- **Trivial-edit batching.** A handful of one-line edits in files you have already read is cheaper inline than delegated: the brief would just restate each edit, and you must read the resulting diff anyway — count verification in the cost of delegating. Delegate mechanical edits when they are numerous (≈10+), sit in files you haven't read (the cheap agent pays the reading), or belong to files another agent already owns — then batch them into ONE cheap agent, never one agent per edit.
 
 ## Report
 

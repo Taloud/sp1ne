@@ -2,7 +2,7 @@
 
 A **Claude Code plugin** — a bundle of generic skills: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, the PRD/issues workflow, triage, handoff, project bootstrap, and cost-optimized orchestration.
 
-The repo *is* the plugin. The only things that aren't shipped by the plugin are two Claude-Code limitations the plugin model can't cover: the **statusline** (plugins can't set the main `statusLine`) and **project scaffolding** (plugins can't write files into your repo) — the latter is handled by a skill, the former needs one manual settings line. Both are below.
+The repo *is* the plugin. The only things that aren't shipped by the plugin are two Claude-Code limitations the plugin model can't cover: the **statusline** (plugins can't set the main `statusLine`) and **project scaffolding** (plugins can't write files into your repo) — the latter is handled by a skill, the former needs one manual settings line. Both are below. [**Hooks**](#hooks-optional) ship too, but as a separate opt-in plugin (`sp1ne-hooks`) rather than inside the bundle.
 
 ## Install
 
@@ -71,7 +71,7 @@ Because the registry is keyed by name, your machine keeps resolving `taloud-plug
 
 Two caveats:
 
-- `plugin update` copies the **working tree**, uncommitted changes included — develop on a branch if you don't want half-finished edits live.
+- `plugin update` copies the **working tree**, uncommitted changes included — develop on a branch if you don't want half-finished edits live. But it **no-ops when HEAD hasn't moved** (it keys on the commit SHA): to pick up uncommitted-only changes, either commit first or reinstall (`claude plugin uninstall` + `install`).
 - Keep the clone checked out on a branch that contains `.claude-plugin/` — without it, `plugin update` has no marketplace to read.
 
 ### An experimental skill outside the bundle
@@ -103,6 +103,38 @@ Plugins can only configure `subagentStatusLine`, never the main `statusLine` —
 ```
 
 Point the path at wherever you cloned this repo. After that, edits to the script are live. (Prefer a stable location? `ln -s ~/path/to/sp1ne/scripts ~/.claude/scripts` once, then reference `~/.claude/scripts/statusline.mjs`.)
+
+## Hooks (optional)
+
+Hooks are **not** bundled into sp1ne itself — a plugin's hooks register automatically for every consumer, and Claude Code offers no per-hook opt-out (disabling is all-or-nothing per plugin). A guardrail is a personal policy, so hooks live in a **second plugin**, `sp1ne-hooks`, hosted in this same repo under `plugins/sp1ne-hooks/` and cataloged separately. Nothing changes for `sp1ne` consumers who don't want it.
+
+```bash
+claude plugin install sp1ne-hooks@taloud-plugins
+```
+
+Same release model as sp1ne (commit SHA is the version, `autoUpdate` picks up pushes to `main`). Opting out later is one command, sp1ne itself is untouched:
+
+```bash
+claude plugin disable sp1ne-hooks@taloud-plugins
+```
+
+For local development the dev-mirror `marketplace.json` declares it too, so the [same workflow](#local-development) applies (`claude plugin update sp1ne-hooks@taloud-plugins`).
+
+### deny-ssh
+
+A `PreToolUse` hook that denies **any** Bash command invoking `ssh` — directly (`ssh host`), behind a wrapper (`sudo ssh`, `xargs ssh`), inside quotes (`bash -c "ssh host"`) or spelled as a path (`/usr/bin/ssh`). Matching is strict by design, so an innocent mention like `echo ssh` gets denied too; that's the accepted cost. Implicit ssh (a `git push` over an ssh remote, `cat ~/.ssh/config`) stays allowed.
+
+To block more binaries the same way (`scp`, `sftp`, …), add them to the `BLOCKED` list at the top of `plugins/sp1ne-hooks/hooks/deny-ssh.mjs`.
+
+### deny-risky-git-push
+
+A `PreToolUse` hook that denies risky `git push` invocations:
+
+- **any force push, to any branch** — `-f`, `--force`, `--force-with-lease[=…]`, `--force-if-includes`, a `+refspec`, `--mirror`;
+- **any push targeting a protected branch** (`main`, `master`, `develop`) — explicit (`git push origin main`, `HEAD:master`, `--delete origin main`, `--all`) or implicit (`git push` with no refspec while the current branch is protected — resolved by running `git` in the session's cwd, best effort);
+- **any tag push** — `--tags`, `--follow-tags`, a `refs/tags/…` refspec, or a refspec naming a local tag (`git push origin v1.0.0` — resolved via `git tag -l` in the session's cwd, best effort).
+
+Pushing feature branches stays allowed. The protected list is the `PROTECTED` array at the top of `plugins/sp1ne-hooks/hooks/deny-risky-git-push.mjs`.
 
 ## Without Claude Code (Codex, Cursor, other agents)
 
@@ -140,6 +172,13 @@ sp1ne/
 ├── .claude-plugin/
 │   ├── marketplace.json    # dev mirror of "taloud-plugins" (source ./) — public catalog: Taloud/claude-plugins
 │   └── plugin.json         # metadata — no version field: the commit SHA is the version
+├── plugins/
+│   └── sp1ne-hooks/        # second plugin, opt-in — guardrail hooks (cataloged via git-subdir)
+│       ├── .claude-plugin/plugin.json
+│       └── hooks/
+│           ├── hooks.json  # registers the hooks (PreToolUse → deny-*)
+│           ├── deny-ssh.mjs
+│           └── deny-risky-git-push.mjs
 ├── scripts/
 │   └── statusline.mjs      # optional statusline — wired manually (plugins can't set statusLine)
 └── skills/                 # the bundle — shipped by the plugin
@@ -155,5 +194,5 @@ sp1ne/
 
 - macOS or Linux.
 - Claude Code ≥ 2.x (plugin support).
-- Node.js ≥ 18 for the optional statusline (ESM `node:` imports).
+- Node.js ≥ 18 for the optional statusline and hooks (ESM `node:` imports).
 - `gh` CLI for skills that interact with GitHub (`to-prd`, `to-issues`, `triage`, etc.).

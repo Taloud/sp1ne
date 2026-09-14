@@ -12,6 +12,11 @@
       "name": "sp1ne",
       "source": "./",
       "description": "Generic Claude Code skills bundle: lessons capitalisation, PR descriptions, conventions check, plan grilling, TDD, PRD/issues workflow, triage, handoff, project bootstrap."
+    },
+    {
+      "name": "sp1ne-hooks",
+      "source": "./plugins/sp1ne-hooks",
+      "description": "Opt-in guardrail hooks, kept separate from sp1ne so consumers choose them explicitly: deny-ssh denies any Bash command invoking ssh; deny-risky-git-push denies force pushes, tag pushes and pushes to main/master/develop."
     }
   ]
 }
