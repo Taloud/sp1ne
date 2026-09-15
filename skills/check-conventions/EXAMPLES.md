@@ -1,10 +1,10 @@
-# check-conventions — worked examples
+# check-conventions: worked examples
 
 Concrete examples of each check type from Phase 3.
 
 ## Vocabulary drift
 
-Glossary defines `Cancellation` as customer-driven; diff introduces a service method `cancelOrderForFraud()` — that's a `Termination`, not a `Cancellation`.
+Glossary defines `Cancellation` as customer-driven; diff introduces a service method `cancelOrderForFraud()`, which is a `Termination`, not a `Cancellation`.
 
 ## ADR contradiction
 

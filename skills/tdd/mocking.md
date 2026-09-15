@@ -5,11 +5,11 @@ Mocking is a last resort, not a default. The right test strategy depends on what
 | Category | Examples | Test strategy |
 |---|---|---|
 | **In-process** | pure computation, in-memory state, no I/O | No mock. Test through the interface directly. |
-| **Local-substitutable** | DB with a local stand-in (test DB, PGLite, SQLite), in-memory filesystem | No mock. Run the real stand-in in the test suite — the seam stays internal. |
+| **Local-substitutable** | DB with a local stand-in (test DB, PGLite, SQLite), in-memory filesystem | No mock. Run the real stand-in in the test suite; the seam stays internal. |
 | **Remote but owned** | your own services across a network (microservices, internal APIs) | Define a **port** at the seam; inject an in-memory adapter in tests, the real transport (HTTP/gRPC/queue) in production. |
 | **True external** | third-party services you don't control (payment, SMS, email) | Inject the dependency as a port; tests provide a **mock** adapter. |
 
-The rule the old "mock at system boundaries only" was reaching for: never mock your own classes, internal collaborators, or anything you control — deepen or substitute instead. Only categories 3 and 4 (things you can't run honestly in a test) justify a real mock — and even then you mock the *adapter*, not your logic.
+The rule the old "mock at system boundaries only" was reaching for: never mock your own classes, internal collaborators, or anything you control: deepen or substitute instead. Only categories 3 and 4 (things you can't run honestly in a test) justify a real mock, and even then you mock the *adapter*, not your logic.
 
 ## Designing for Mockability
 

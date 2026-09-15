@@ -35,7 +35,7 @@ Use the detected base branch for every following command.
   2. the commit subjects (`git log <base>..HEAD --pretty=%s`)
 - If found → prefill `[PREFIX-NNNN]`. Otherwise leave the placeholder `[À COMPLÉTER]` and list it at the end.
 
-Do **not** hardcode a prefix (`ABC`, `PROJ`, …) — read what's actually used in the branch / commits.
+Do **not** hardcode a prefix (`ABC`, `PROJ`, …): read what's actually used in the branch / commits.
 
 ## 3. PRD link & issue to close
 
@@ -48,20 +48,20 @@ Do **not** hardcode a prefix (`ABC`, `PROJ`, …) — read what's actually used 
   - **no `prd` label** → it's the **slice / work issue this PR resolves** → `Closes #N`.
 - A `prd-(\d+)` branch with no other reference → treat that number as the parent PRD.
 - Build the `## 🧭 PRD` section in this order:
-  1. `Lié au PRD : [#<PRD> — <titre>](https://github.com/<owner>/<repo>/issues/<PRD>)` — only if a parent PRD was found (title via `gh issue view`, else leave `— titre`).
-  2. `Closes #<slice>` — one line per slice/work issue the PR resolves (GitHub auto-closes it on merge).
+  1. `Lié au PRD : [#<PRD> : <titre>](https://github.com/<owner>/<repo>/issues/<PRD>)`, only if a parent PRD was found (title via `gh issue view`, else leave `: titre`).
+  2. `Closes #<slice>`, one line per slice/work issue the PR resolves (GitHub auto-closes it on merge).
 - If neither a PRD nor a closable issue is detected → **drop the entire `## 🧭 PRD` section** from the output.
 
 ## 4. Impacted areas & content-types (discovered, not hardcoded)
 
-- **Areas / sites**: derive from the directory layout actually present in the diff. Inspect modified paths and look for a recurring second-level segment (`<root>/<area>/...`) under directories like `templates/`, `tests/`, `tests/playwright/`, `config/`, `assets/`, `apps/`, `packages/`, `sites/`. Treat shared roots (`common/`, `shared/`, `core/`) as "transverse" — mention them in *Description* but don't list them per-area.
+- **Areas / sites**: derive from the directory layout actually present in the diff. Inspect modified paths and look for a recurring second-level segment (`<root>/<area>/...`) under directories like `templates/`, `tests/`, `tests/playwright/`, `config/`, `assets/`, `apps/`, `packages/`, `sites/`. Treat shared roots (`common/`, `shared/`, `core/`) as "transverse": mention them in *Description* but don't list them per-area.
 - **Content-types / kind labels**: extract from the spec/template **filename** (strip extensions `.spec.{js,ts}`, `.html.twig`, `.tsx`, …). Use the filename as the label as-is; don't try to map to a hardcoded vocabulary.
 
 If no clear per-area split exists, skip area grouping and list URLs flat.
 
 ## 5. Playwright test URLs (the part that has to stay generic)
 
-When the diff modifies any `**/*.spec.{js,ts}`, build the test URLs **the same way the project's own Playwright setup builds them** (discover the base-URL pattern, extract each spec's path, compose the URL) — see [`playwright-urls.md`](playwright-urls.md) for the procedure. If no Playwright spec is modified → **drop the `## 🔗 URLs de test` section**.
+When the diff modifies any `**/*.spec.{js,ts}`, build the test URLs **the same way the project's own Playwright setup builds them** (discover the base-URL pattern, extract each spec's path, compose the URL); see [`playwright-urls.md`](playwright-urls.md) for the procedure. If no Playwright spec is modified → **drop the `## 🔗 URLs de test` section**.
 
 ## 6. Description & "Comment tester"
 
@@ -70,7 +70,7 @@ When the diff modifies any `**/*.spec.{js,ts}`, build the test URLs **the same w
 
 ## 7. URL formatting
 
-When per-area grouping makes sense, group by area with kind labels as sub-bullets — **never** repeat the area name:
+When per-area grouping makes sense, group by area with kind labels as sub-bullets: **never** repeat the area name.
 
 ```
 - <area-1>
@@ -86,7 +86,7 @@ Otherwise, list URLs flat under the section.
 
 **Copy the raw markdown into the system clipboard** via Bash (`pbcopy` on macOS, `xclip -selection clipboard` or `xsel --clipboard --input` or `wl-copy` on Linux, `clip.exe` on Windows/WSL) using a **quoted** heredoc (`pbcopy <<'PRDESC' … PRDESC`). The single-quoted delimiter is mandatory: the body is full of backticks and `$()` and an unquoted `<<EOF` would shell-expand (or execute) them instead of copying them verbatim. Also display it in a fenced ```` ```md ```` block for review. After a successful copy, print `✅ Description copiée dans le presse-papier.`
 
-Never insert a hard line break inside a sentence or a bullet — one continuous line per bullet/paragraph, however long. Let GitHub soft-wrap.
+Never insert a hard line break inside a sentence or a bullet: one continuous line per bullet/paragraph, however long. Let GitHub soft-wrap.
 
 ```markdown
 ## 🎟️ Ticket Jira
@@ -99,7 +99,7 @@ Never insert a hard line break inside a sentence or a bullet — one continuous 
 
 ## 🧭 PRD
 
-Lié au PRD : [#XXXX — <titre>](https://github.com/<owner>/<repo>/issues/XXXX)
+Lié au PRD : [#XXXX : <titre>](https://github.com/<owner>/<repo>/issues/XXXX)
 
 Closes #XXXX
 
@@ -130,7 +130,7 @@ Closes #XXXX
 ```
 
 Optional sections to drop:
-- `## 🧭 PRD` if neither a PRD link nor a closable issue was detected. Inside it, drop the `Lié au PRD` line if no parent PRD was found, or the `Closes #XXXX` line(s) if no slice/work issue was found — keep whichever applies.
+- `## 🧭 PRD` if neither a PRD link nor a closable issue was detected. Inside it, drop the `Lié au PRD` line if no parent PRD was found, or the `Closes #XXXX` line(s) if no slice/work issue was found: keep whichever applies.
 - `## 🔗 URLs de test` if no Playwright spec was modified.
 - `## 🎨 Maquettes` placeholder stays (always asked).
 
@@ -144,11 +144,11 @@ A single line listing the remaining placeholders to fill (e.g. `À compléter : 
 - ❌ Hardcoding a port. Take it from the discovered base URL.
 - ❌ Hardcoding a Jira prefix. Match `[A-Z]{2,}-\d+` in the branch / commits.
 - ❌ Hardcoding a GitHub repo (`owner/name`). Use `gh repo view` or the `origin` remote.
-- ❌ Repeating the area name in the URL list (`siteA — kindA`, `siteA — kindB`). Use grouping.
+- ❌ Repeating the area name in the URL list (`siteA : kindA`, `siteA : kindB`). Use grouping.
 - ❌ Inventing URLs: extract **only** from `navigateTo` / `page.goto` calls in modified specs.
-- ❌ Inflated checklist — keep the 3 template items.
-- ❌ Running tests / linters — this skill only produces text.
+- ❌ Inflated checklist: keep the 3 template items.
+- ❌ Running tests / linters: this skill only produces text.
 - ❌ Emitting the description as live markdown (rendered `##` headings). Wrap it in a fenced code block so the literal `##` survives copy-paste.
-- ❌ Hard-wrapping a sentence or bullet across several lines — it pastes into GitHub with forced mid-sentence breaks. One logical line per bullet/paragraph.
+- ❌ Hard-wrapping a sentence or bullet across several lines: it pastes into GitHub with forced mid-sentence breaks. One logical line per bullet/paragraph.
 - ❌ `Closes`-ing the parent PRD container (the `prd`-labelled issue). Link it; `Closes` only the slice/work issue the PR resolves.
-- ❌ Unquoted heredoc (`<<EOF`) for the clipboard copy — the description's backticks/`$()` get shell-expanded. Always use `<<'PRDESC'`.
+- ❌ Unquoted heredoc (`<<EOF`) for the clipboard copy: the description's backticks/`$()` get shell-expanded. Always use `<<'PRDESC'`.

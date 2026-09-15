@@ -2,11 +2,11 @@
 
 ## Why Horizontal Slicing Produces Crap Tests
 
-**DO NOT write all tests first, then all implementation.** This is "horizontal slicing" — treating RED as "write all tests" and GREEN as "write all code." It produces **crap tests**:
+**DO NOT write all tests first, then all implementation.** This is "horizontal slicing": treating RED as "write all tests" and GREEN as "write all code." It produces **crap tests**:
 
 - Tests written in bulk test _imagined_ behavior, not _actual_ behavior
 - You end up testing the _shape_ of things (data structures, function signatures) rather than user-facing behavior
-- Tests become insensitive to real changes — they pass when behavior breaks, fail when behavior is fine
+- Tests become insensitive to real changes: they pass when behavior breaks, fail when behavior is fine
 - You outrun your headlights, committing to test structure before understanding the implementation
 
 ```
@@ -83,4 +83,4 @@ test("createUser makes user retrievable", async () => {
 
 ## Test data: fake in the test, never escape-hatch in prod
 
-When a test needs an object that's tedious to build in full, use a partial or fake **inside the test** (a typed test factory, a partial cast confined to the test file) — keep the friction in the tests, not in production. Never reach for a production type-escape-hatch (`as any`, `@ts-ignore`, an untyped array, a loosened prod signature) just to make a test compile: that erases the very contract the test exists to protect.
+When a test needs an object that's tedious to build in full, use a partial or fake **inside the test** (a typed test factory, a partial cast confined to the test file), keeping the friction in the tests, not in production. Never reach for a production type-escape-hatch (`as any`, `@ts-ignore`, an untyped array, a loosened prod signature) just to make a test compile: that erases the very contract the test exists to protect.

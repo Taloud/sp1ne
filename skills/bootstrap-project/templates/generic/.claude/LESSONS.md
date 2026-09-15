@@ -5,7 +5,7 @@ Mistakes Claude has already made on this project, captured via the `lessons-add`
 ## Format
 
 ```
-### <ID> — <one-line title>
+### <ID>: <one-line title>
 <actionable rule>. *Why*: <concise reason, especially when not obvious>. → <optional ref> · YYYY-MM-DD
 ```
 

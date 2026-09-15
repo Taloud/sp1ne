@@ -1,4 +1,4 @@
-# {{PROJECT}} — Claude instructions
+# {{PROJECT}}: Claude instructions
 
 [One or two sentences: what this API does, who consumes it, main constraints.]
 
@@ -18,15 +18,15 @@
 
 ## Internal bundles in use
 
-[Fill in from `composer.json` — list proprietary/private bundles here so Claude knows them.]
+[Fill in from `composer.json`: list proprietary/private bundles here so Claude knows them.]
 
 ## Index
 
-- `.claude/LESSONS.md` — mistakes already made (extend via the `lessons-add` skill)
-- `.claude/GLOSSARY.md` — domain vocabulary ↔ code mapping
-- `.claude/CODEMAP.md` — high-level module map
+- `.claude/LESSONS.md`: mistakes already made (extend via the `lessons-add` skill)
+- `.claude/GLOSSARY.md`: domain vocabulary ↔ code mapping
+- `.claude/CODEMAP.md`: high-level module map
 
 ## Conventions / golden rules
 
-- Doctrine migrations via `bin/console doctrine:migrations:diff` — do not edit the migration class by hand.
+- Doctrine migrations via `bin/console doctrine:migrations:diff`; do not edit the migration class by hand.
 - [Other project-specific constraints.]

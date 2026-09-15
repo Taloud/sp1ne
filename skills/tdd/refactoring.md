@@ -11,4 +11,4 @@ After TDD cycle, look for:
 
 ## Replace, don't layer
 
-When you deepen a cluster of shallow modules, the old unit tests that targeted the shallow pieces become waste once tests exist at the deepened module's interface — **delete them, don't keep both layers**. The interface is the test surface: new tests assert on observable outcomes through it, not on internal state. Layering new tests on top of the old ones leaves you maintaining tests coupled to an implementation that no longer has an independent existence — exactly the implementation-coupled tests this loop warns against.
+When you deepen a cluster of shallow modules, the old unit tests that targeted the shallow pieces become waste once tests exist at the deepened module's interface: **delete them, don't keep both layers**. The interface is the test surface: new tests assert on observable outcomes through it, not on internal state. Layering new tests on top of the old ones leaves you maintaining tests coupled to an implementation that no longer has an independent existence, exactly the implementation-coupled tests this loop warns against.

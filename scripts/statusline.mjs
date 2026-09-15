@@ -14,7 +14,7 @@
  * - Worktree indicator (wt:) when inside a linked worktree
  * - Stash indicator [N] when stashes exist
  * - Optional "project context" read from .env.local / .env via CURRENT_APPLICATION
- *   (a multi-site convention — harmless if missing, just falls back to nothing)
+ *   (a multi-site convention, harmless if missing, just falls back to nothing)
  * - Color-coded context window usage (green < 50% < yellow < 75% < orange < 90% < red)
  * - Rate limit display for Claude.ai Pro/Max users
  * - Graceful fallback when no data available yet
@@ -108,7 +108,7 @@ function getGitInfo(cwd) {
     let branch = safeExec('git branch --show-current', cwd);
     let shortSha = '';
     if (!branch) {
-      // Detached HEAD — use short SHA for context
+      // Detached HEAD: use short SHA for context
       branch = 'HEAD';
       shortSha = safeExec('git rev-parse --short HEAD', cwd);
     }
@@ -150,7 +150,7 @@ function getGitInfo(cwd) {
 // Project context (optional multi-site convention via CURRENT_APPLICATION, harmless elsewhere)
 // ---------------------------------------------------------------------------
 
-// Reads an optional CURRENT_APPLICATION key from .env.local/.env — a convention
+// Reads an optional CURRENT_APPLICATION key from .env.local/.env, a convention
 // for multi-site monorepos. Falls back to nothing when absent.
 function getProjectContext(cwd) {
   for (const filename of ['.env.local', '.env']) {

@@ -5,7 +5,7 @@
     "url": "https://github.com/Taloud"
   },
   "metadata": {
-    "description": "Taloud's plugin index — catalogs Claude Code plugins, each living in its own repo"
+    "description": "Taloud's plugin index: catalogs Claude Code plugins, each living in its own repo"
   },
   "plugins": [
     {

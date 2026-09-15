@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse hook — denies any Bash command that invokes ssh.
+// PreToolUse hook: denies any Bash command that invokes ssh.
 //
 // Strict by design: a standalone `ssh` token anywhere in the command line is
 // denied, including inside quotes (`bash -c "ssh host"`), behind wrappers
@@ -8,7 +8,7 @@
 // Out of scope: ssh-the-protocol used implicitly (git push/pull over an ssh
 // remote never spells `ssh` in the command and stays allowed).
 //
-// Registered by the sp1ne-hooks plugin via hooks/hooks.json — see the main
+// Registered by the sp1ne-hooks plugin via hooks/hooks.json, see the main
 // README's "Hooks" section.
 
 const BLOCKED = ['ssh'];

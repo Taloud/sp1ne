@@ -15,31 +15,31 @@ Detect the language from the issue body (and `CLAUDE.md` as a fallback). When in
 
 ## Reference docs
 
-- [AGENT-BRIEF.md](AGENT-BRIEF.md) — how to write durable agent briefs
-- [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md) — how the `.out-of-scope/` rejection knowledge base works
+- [AGENT-BRIEF.md](AGENT-BRIEF.md): how to write durable agent briefs
+- [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md): how the `.out-of-scope/` rejection knowledge base works
 
 ## Roles
 
 Two **category** roles:
 
-- `bug` — something is broken
-- `enhancement` — new feature or improvement
+- `bug`: something is broken
+- `enhancement`: new feature or improvement
 
 Five **state** roles:
 
-- `needs-triage` — maintainer needs to evaluate
-- `needs-info` — waiting on reporter for more information
-- `ready-for-agent` — fully specified, ready for an AFK agent
-- `ready-for-human` — needs human implementation
-- `wontfix` — will not be actioned
+- `needs-triage`: maintainer needs to evaluate
+- `needs-info`: waiting on reporter for more information
+- `ready-for-agent`: fully specified, ready for an AFK agent
+- `ready-for-human`: needs human implementation
+- `wontfix`: will not be actioned
 
 Every triaged issue should carry exactly one category role and one state role. If state roles conflict, flag it and ask the maintainer before doing anything else.
 
 These are canonical role names. If the repo uses different label strings (e.g. `bug:triage` instead of `needs-triage`), substitute throughout. Create missing labels on the fly with `gh label create` when first needed.
 
-**PRD containers are excluded from triage.** Issues carrying the `prd` label (created by `/to-prd`) are container documents, not units of work — they must not appear in triage queues and are not subject to the state machine.
+**PRD containers are excluded from triage.** Issues carrying the `prd` label (created by `/to-prd`) are container documents, not units of work; they must not appear in triage queues and are not subject to the state machine.
 
-State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time — flag transitions that look unusual and ask before proceeding.
+State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time, but flag transitions that look unusual and ask before proceeding.
 
 ## Invocation
 
@@ -54,15 +54,15 @@ The maintainer invokes `/triage` and describes what they want in natural languag
 
 Query GitHub and present three buckets, oldest first. **Always exclude `prd` containers** in the query:
 
-1. **Unlabeled** — never triaged.
+1. **Unlabeled**: never triaged.
    ```bash
    gh issue list --search "no:label -label:prd" --state open
    ```
-2. **`needs-triage`** — evaluation in progress.
+2. **`needs-triage`**: evaluation in progress.
    ```bash
    gh issue list --label needs-triage --state open
    ```
-3. **`needs-info` with reporter activity since the last triage notes** — needs re-evaluation.
+3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation.
    ```bash
    gh issue list --label needs-info --state open
    ```
@@ -74,28 +74,28 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
 
 1. **Gather context.** Read the full issue (body, comments, labels, reporter, dates). Parse any prior triage notes so you don't re-ask resolved questions. Explore the codebase using the project's domain glossary, respecting ADRs in the area.
 
-   **Check for redundancy** — does the requested behavior already exist? Search the codebase by **domain concept**, not by the issue's wording (a request for "undo" may already ship as "revert"). Report where you looked. If it already exists, it's an *already-implemented* `wontfix` (step 5) — point to where it lives, kept distinct from a *rejected* request.
+   **Check for redundancy**: does the requested behavior already exist? Search the codebase by **domain concept**, not by the issue's wording (a request for "undo" may already ship as "revert"). Report where you looked. If it already exists, it's an *already-implemented* `wontfix` (step 5); point to where it lives, kept distinct from a *rejected* request.
 
-   **Check for prior rejections** of the same concept. Read the `.out-of-scope/*.md` knowledge base at the repo root (see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)) and match by **concept similarity, not keywords** ("night theme" matches `dark-mode.md`). If a matching prior rejection exists, surface it before recommending: "This resembles `.out-of-scope/<concept>.md` — rejected before because `<reason>`. Do you still feel the same way?"
+   **Check for prior rejections** of the same concept. Read the `.out-of-scope/*.md` knowledge base at the repo root (see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)) and match by **concept similarity, not keywords** ("night theme" matches `dark-mode.md`). If a matching prior rejection exists, surface it before recommending: "This resembles `.out-of-scope/<concept>.md`, rejected before because `<reason>`. Do you still feel the same way?"
 
 2. **Recommend.** Tell the maintainer your category and state recommendation with reasoning, plus a brief codebase summary relevant to the issue. Wait for direction.
 
-3. **Verify the claim.** Before any grilling, check that the claim holds up. For a **bug**, reproduce it: read the reporter's steps, trace the relevant code, run tests or commands. For an **enhancement** whose premise is doubtful (e.g. "X is impossible today"), confirm the premise against the code before grilling — the request may rest on a misunderstanding. Report what happened — confirmed (with code path), failed, or insufficient detail (a strong `needs-info` signal). A confirmed verification makes a much stronger agent brief.
+3. **Verify the claim.** Before any grilling, check that the claim holds up. For a **bug**, reproduce it: read the reporter's steps, trace the relevant code, run tests or commands. For an **enhancement** whose premise is doubtful (e.g. "X is impossible today"), confirm the premise against the code before grilling, since the request may rest on a misunderstanding. Report what happened: confirmed (with code path), failed, or insufficient detail (a strong `needs-info` signal). A confirmed verification makes a much stronger agent brief.
 
-4. **Grill (if needed).** If the issue needs fleshing out, run a `/grilling` session — interrogate it into shape one question at a time, sharpening domain terms against the project's glossary and updating `CONTEXT.md` / ADRs inline as decisions land (delegate any lesson-write to `/lessons-add`).
+4. **Grill (if needed).** If the issue needs fleshing out, call the Skill tool with "grilling" to interrogate it into shape one question at a time, sharpening domain terms against the project's glossary and updating `CONTEXT.md` / ADRs inline as decisions land. Delegate any lesson-write by calling the Skill tool with "lessons-add".
 
-5. **Apply the outcome.** **Confirm with the user before running any `gh` write commands** (label changes, comments, close) — these are external/shared actions.
-   - `ready-for-agent` — see [Agent brief vs existing slice body](#agent-brief-vs-existing-slice-body) below.
-   - `ready-for-human` — post a comment with the same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
-   - `needs-info` — post triage notes (template below).
-   - `wontfix` (already implemented) — the behavior already exists (found in step 1). Point to where it lives, then close with the `wontfix` label. Do **not** write to `.out-of-scope/` — that KB is for *rejected* requests, not built ones, and polluting it would corrupt future redundancy and duplicate checks.
-   - `wontfix` (bug, rejected) — polite explanation, then close.
-   - `wontfix` (enhancement, rejected) — record the rejection in `.out-of-scope/<concept>.md` (append to the matching file or create it — see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)), post a rejection comment that states the reasoning and links the `.out-of-scope/` file, then close with the `wontfix` label. The knowledge base — not a label — is what makes future duplicates discoverable at step 1.
-   - `needs-triage` — apply the role. Optional comment if there's partial progress.
+5. **Apply the outcome.** **Confirm with the user before running any `gh` write commands** (label changes, comments, close): these are external/shared actions.
+   - `ready-for-agent`: see [Agent brief vs existing slice body](#agent-brief-vs-existing-slice-body) below.
+   - `ready-for-human`: post a comment with the same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
+   - `needs-info`: post triage notes (template below).
+   - `wontfix` (already implemented): the behavior already exists (found in step 1). Point to where it lives, then close with the `wontfix` label. Do **not** write to `.out-of-scope/`: that KB is for *rejected* requests, not built ones, and polluting it would corrupt future redundancy and duplicate checks.
+   - `wontfix` (bug, rejected): polite explanation, then close.
+   - `wontfix` (enhancement, rejected): record the rejection in `.out-of-scope/<concept>.md` (append to the matching file or create it, see [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)), post a rejection comment that states the reasoning and links the `.out-of-scope/` file, then close with the `wontfix` label. The knowledge base, not a label, is what makes future duplicates discoverable at step 1.
+   - `needs-triage`: apply the role. Optional comment if there's partial progress.
 
 ### Agent brief vs existing slice body
 
-Slices created by `/to-issues` already carry a structured body (`## What to build`, `## Acceptance criteria`, `## Blocked by`). Do not blindly re-post an agent brief on top — that creates redundancy.
+Slices created by `/to-issues` already carry a structured body (`## What to build`, `## Acceptance criteria`, `## Blocked by`). Do not blindly re-post an agent brief on top; that creates redundancy.
 
 **Heuristic:**
 

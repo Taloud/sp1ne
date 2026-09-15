@@ -1,12 +1,12 @@
 # Writing Agent Briefs
 
-An agent brief is a structured comment posted on a GitHub issue when it moves to `ready-for-agent`. It is the authoritative specification that an AFK agent will work from. The original issue body and discussion are context — the agent brief is the contract.
+An agent brief is a structured comment posted on a GitHub issue when it moves to `ready-for-agent`. It is the authoritative specification that an AFK agent will work from. The original issue body and discussion are context; the agent brief is the contract.
 
 ## When to write one
 
-See `SKILL.md` — "Agent brief vs existing slice body".
+See `SKILL.md`, "Agent brief vs existing slice body".
 
-Whatever the trigger, the brief comment — like every triage comment — must open with the AI disclaimer in the issue's language (see `SKILL.md`).
+Whatever the trigger, the brief comment, like every triage comment, must open with the AI disclaimer in the issue's language (see `SKILL.md`).
 
 ## Principles
 
@@ -16,7 +16,7 @@ The issue may sit in `ready-for-agent` for days or weeks. The codebase will chan
 
 - **Do** describe interfaces, types, and behavioral contracts
 - **Do** name specific types, function signatures, or config shapes that the agent should look for or modify
-- **Don't** reference file paths, line numbers, or the current implementation structure — they all go stale
+- **Don't** reference file paths, line numbers, or the current implementation structure: they all go stale
 
 ### Behavioral, not procedural
 
@@ -57,9 +57,9 @@ Describe what should happen after the agent's work is complete.
 Be specific about edge cases and error conditions.
 
 **Key interfaces:**
-- `TypeName` — what needs to change and why
-- `functionName()` return type — what it currently returns vs what it should return
-- Config shape — any new configuration options needed
+- `TypeName`: what needs to change and why
+- `functionName()` return type: what it currently returns vs what it should return
+- Config shape: any new configuration options needed
 
 **Acceptance criteria:**
 - [ ] Specific, testable criterion 1
@@ -93,7 +93,7 @@ Truncation should break at the last word boundary before 1024 characters
 and append "..." to indicate truncation.
 
 **Key interfaces:**
-- The `SkillMetadata` type's `description` field — no type change needed,
+- The `SkillMetadata` type's `description` field: no type change needed,
   but the validation/processing logic that populates it needs to respect
   word boundaries
 - Any function that reads SKILL.md frontmatter and extracts the description
@@ -133,12 +133,12 @@ response should include pagination metadata (total count, current page,
 next/prev page indicators) alongside the items.
 
 **Key interfaces:**
-- The endpoint's response shape — add a top-level `pagination` object next
+- The endpoint's response shape: add a top-level `pagination` object next
   to `items`, with `total`, `page`, `per_page`, `has_next`, `has_prev`
-- The query layer that fetches issues — must accept offset/limit and
+- The query layer that fetches issues: must accept offset/limit and
   return a total count without scanning all rows (use a count query or
   windowed query)
-- Any client SDK type that types the response — needs the new pagination
+- Any client SDK type that types the response: needs the new pagination
   field
 
 **Acceptance criteria:**

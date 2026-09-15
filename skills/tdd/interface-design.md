@@ -1,6 +1,6 @@
 # Interface Design for Testability
 
-An **interface** is everything a caller must know to use a module correctly: not just the type signature, but also its invariants, ordering constraints, error modes, required configuration, and performance characteristics. "Small surface area" means small along *all* of those axes — not just a short signature. A function with two parameters but five undocumented failure modes has a large interface.
+An **interface** is everything a caller must know to use a module correctly: not just the type signature, but also its invariants, ordering constraints, error modes, required configuration, and performance characteristics. "Small surface area" means small along *all* of those axes, not just a short signature. A function with two parameters but five undocumented failure modes has a large interface.
 
 Good interfaces make testing natural:
 

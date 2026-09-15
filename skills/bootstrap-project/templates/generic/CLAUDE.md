@@ -1,4 +1,4 @@
-# {{PROJECT}} — Claude instructions
+# {{PROJECT}}: Claude instructions
 
 [One or two sentences: what this project does, who uses it, main constraints.]
 
@@ -17,9 +17,9 @@
 
 ## Index
 
-- `.claude/LESSONS.md` — mistakes already made (extend via the `lessons-add` skill)
-- `.claude/GLOSSARY.md` — domain vocabulary ↔ code mapping
-- `.claude/CODEMAP.md` — high-level module map
+- `.claude/LESSONS.md`: mistakes already made (extend via the `lessons-add` skill)
+- `.claude/GLOSSARY.md`: domain vocabulary ↔ code mapping
+- `.claude/CODEMAP.md`: high-level module map
 
 ## Conventions / golden rules
 

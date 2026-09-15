@@ -5,7 +5,7 @@ Mistakes Claude has already made on this project, captured via the `lessons-add`
 ## Format
 
 ```
-### <ID> — <one-line title>
+### <ID>: <one-line title>
 <actionable rule>. *Why*: <concise reason, especially when not obvious>. → <optional ref> · YYYY-MM-DD
 ```
 
@@ -17,16 +17,16 @@ ID prefixes (adapt to the project): `SF` (Symfony / DI / config) · `DB` (Doctri
 
 ## Symfony
 
-<!-- e.g. SF-001 — services_test.yaml does not inherit binds from services.yaml -->
+<!-- e.g. SF-001: services_test.yaml does not inherit binds from services.yaml -->
 
 ## Doctrine / database
 
-<!-- e.g. DB-001 — Always implement `down()` even if it only throws explicitly -->
+<!-- e.g. DB-001: Always implement `down()` even if it only throws explicitly -->
 
 ## CI/CD
 
-<!-- e.g. CI-001 — New build target must be referenced in compose.yaml -->
+<!-- e.g. CI-001: New build target must be referenced in compose.yaml -->
 
 ## Tests
 
-<!-- e.g. TST-001 — Wrap functional tests in a transaction rollback -->
+<!-- e.g. TST-001: Wrap functional tests in a transaction rollback -->

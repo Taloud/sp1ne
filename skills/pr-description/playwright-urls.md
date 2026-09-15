@@ -13,7 +13,7 @@ In order, look for:
 2. **Environment helper** the tests use (e.g. a `navigateTo(page, path)` helper). Open it (`grep -rE "navigateTo\s*=|export.*navigateTo" tests/ playwright/ -l`) and read how it composes the URL (host template, port, query handling).
 3. **An existing passing spec** in the repo (not necessarily one being modified). Extract a real `page.goto('https://…')` to see the concrete pattern.
 
-Record the discovered pattern as `BASE_URL_TEMPLATE` (may contain a `{site}` / `{area}` slot) and a `PORT`. Note any per-area exceptions you actually observe in the config — do **not** invent any.
+Record the discovered pattern as `BASE_URL_TEMPLATE` (may contain a `{site}` / `{area}` slot) and a `PORT`. Note any per-area exceptions you actually observe in the config: do **not** invent any.
 
 ## 2. Extract the path from each modified spec
 

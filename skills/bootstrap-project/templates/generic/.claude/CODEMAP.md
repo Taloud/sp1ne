@@ -7,7 +7,7 @@ Keep this file shallow: one bullet per top-level module/package, one sentence ea
 ## Format
 
 ```
-- `<path>` — what lives here (one sentence). Owns: <key concept>. Used by: <consumers>.
+- `<path>`: what lives here (one sentence). Owns: <key concept>. Used by: <consumers>.
 ```
 
 ## Rules
@@ -15,7 +15,7 @@ Keep this file shallow: one bullet per top-level module/package, one sentence ea
 - One bullet per top-level module, package, or significant directory. Don't drill below 2 levels.
 - Use the project's domain vocabulary (see `GLOSSARY.md`). When a module name doesn't match a glossary term, call out the mapping.
 - When in doubt about what to include, prefer modules a newcomer would need on day one.
-- Update opportunistically when a module is added, moved, or substantially renamed — not eagerly.
+- Update opportunistically when a module is added, moved, or substantially renamed; not eagerly.
 
 ---
 

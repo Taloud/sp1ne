@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// PreToolUse hook — denies risky git pushes from Bash commands:
+// PreToolUse hook: denies risky git pushes from Bash commands:
 //   - any force push, to any branch: -f, --force, --force-with-lease[=…],
 //     --force-if-includes, a +refspec, --mirror;
 //   - any push targeting a protected branch (main, master, develop), spelled
 //     as a refspec (`git push origin main`, `HEAD:master`, `--delete origin
 //     main`, `--all`) or implicit (`git push` while the current branch is
-//     protected — resolved by running git in the hook's cwd, best effort);
+//     protected, resolved by running git in the hook's cwd, best effort);
 //   - any tag push: --tags, --follow-tags, a refs/tags/… refspec, or a
 //     refspec naming a local tag (resolved via git in the hook's cwd).
 // Same strict string-based parsing as deny-ssh: quoted forms (`bash -c "git

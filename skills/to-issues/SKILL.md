@@ -28,7 +28,7 @@ A reference to the parent PRD issue (REQUIRED):
 - A full GitHub issue URL (`https://github.com/<owner>/<repo>/issues/1234`), or
 - The conversation context if a PRD was just published (use the most-recently-published one).
 
-**If no parent PRD reference is available, ask the user — do NOT proceed without one.** This skill exists specifically to attach slices as sub-issues; without a parent there is nothing to attach to.
+**If no parent PRD reference is available, ask the user; do NOT proceed without one.** This skill exists specifically to attach slices as sub-issues; without a parent there is nothing to attach to.
 
 ## Process
 
@@ -38,27 +38,35 @@ Fetch the parent PRD issue with `gh issue view <number> --repo <owner>/<repo> --
 
 **Sanity check the parent is actually a PRD container:** verify the `prd` label is present in the returned labels. If absent, ask the user:
 
-> "Issue #<N> does not carry the `prd` label — it does not look like a PRD container. Continue anyway?"
+> "Issue #<N> does not carry the `prd` label. It does not look like a PRD container. Continue anyway?"
 
 Do not proceed without explicit confirmation when the label is missing.
 
-**Explore the codebase and load the domain language.** If the conversation hasn't already done so, explore the repo to understand the current state and read the domain vocabulary (`CONTEXT.md` / `.claude/GLOSSARY.md`) so slice titles and bodies use canonical terms. For a large repo, delegate the exploration to a sub-agent so it doesn't crowd the context. Note any **prefactoring** opportunity — "make the change easy, then make the easy change" — and surface it as the first slice (or a pre-slice) when the change lands cleaner after a refactor.
+**Explore the codebase and load the domain language.** If the conversation hasn't already done so, explore the repo to understand the current state and read the domain vocabulary (`CONTEXT.md` / `.claude/GLOSSARY.md`) so slice titles and bodies use canonical terms. For a large repo, delegate the exploration to a sub-agent so it doesn't crowd the context. Note any **prefactoring** opportunity ("make the change easy, then make the easy change") and surface it as the first slice (or a pre-slice) when the change lands cleaner after a refactor.
 
 ### 2. Draft vertical slices
 
 Break the plan into tracer-bullet issues, using the project's domain glossary in titles and descriptions and respecting ADRs in the area you're touching.
 
 <vertical-slice-rules>
-- First decide whether the PRD even needs breaking down: split only when the slices have **separable failure modes** or can progress in parallel. If the work is one indivisible path, a single issue is the honest answer — don't manufacture slices.
-- Each slice cuts through ALL integration layers end-to-end (schema, API, UI, tests) — NOT a horizontal slice of one layer
+- First decide whether the PRD even needs breaking down: split only when the slices have **separable failure modes** or can progress in parallel. If the work is one indivisible path, a single issue is the honest answer; don't manufacture slices.
+- Each slice cuts through ALL integration layers end-to-end (schema, API, UI, tests), NOT a horizontal slice of one layer
 - Each slice delivers a narrow but COMPLETE path through every layer
 - A completed slice is demoable or verifiable on its own
 - Prefer many thin slices over few thick ones
 </vertical-slice-rules>
 
+**Wide refactors are the exception to vertical slicing.** A wide refactor is one mechanical change (rename a column, retype a shared symbol) whose blast radius fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand-contract**:
+
+1. **Expand**: add the new form beside the old so nothing breaks. One slice.
+2. **Migrate**: move the call sites over in batches sized by blast radius (per package, per directory). Each batch is its own slice, blocked by the expand slice; CI stays green batch to batch because the old form still exists.
+3. **Contract**: delete the old form once no caller remains, in a slice blocked by every migrate batch.
+
+When even the batches can't stay green alone, keep the sequence but let them share an integration branch, all blocking a final integrate-and-verify slice; green is promised only there.
+
 Slices may be HITL or AFK:
-- **HITL** — requires human interaction (architectural decision, design review)
-- **AFK** — can be implemented and merged without human interaction
+- **HITL**: requires human interaction (architectural decision, design review)
+- **AFK**: can be implemented and merged without human interaction
 
 ### 3. Quiz the user
 
@@ -79,7 +87,7 @@ Iterate until the user approves the breakdown.
 
 ### 4. Publish slices and attach as sub-issues
 
-**Confirm the publication step with the user before running any `gh` write commands** — creating issues is an external/shared action.
+**Confirm the publication step with the user before running any `gh` write commands**: creating issues is an external/shared action.
 
 For each approved slice, **in dependency order (blockers first)** so real issue numbers can be referenced in subsequent slices' "Blocked by":
 
@@ -109,7 +117,7 @@ For each approved slice, **in dependency order (blockers first)** so real issue 
    - The sub-issues API expects an **integer**. Use `-F` (raw value), NOT `-f` (which sends a string and returns HTTP 422).
    - Use the **internal `id`** (a long integer like `4348893561`), NOT the human-readable issue `number`.
 
-Containment (sub-issue) and dependency (blocked-by) are different relationships — never nest a blocked slice as a sub-sub-issue. For the reasoning, see [`containment-vs-dependency.md`](containment-vs-dependency.md).
+Containment (sub-issue) and dependency (blocked-by) are different relationships; never nest a blocked slice as a sub-sub-issue. For the reasoning, see [`containment-vs-dependency.md`](containment-vs-dependency.md).
 
 ## Issue body template
 
@@ -122,7 +130,7 @@ A reference to the parent PRD issue: `#<PRD_NUMBER>`.
 
 ## What to build
 
-A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation. Describe it as *behavior* in the project's domain language — avoid specific file paths, line numbers, or internal module names, which rot before the slice is picked up. Exception: if a prototype or a prior decision produced a snippet that encodes the decision more precisely than prose can (state machine, reducer, schema, type shape), inline it trimmed to the decision-rich parts.
+A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation. Describe it as *behavior* in the project's domain language, avoiding specific file paths, line numbers, or internal module names, which rot before the slice is picked up. Exception: if a prototype or a prior decision produced a snippet that encodes the decision more precisely than prose can (state machine, reducer, schema, type shape), inline it trimmed to the decision-rich parts.
 
 ## Acceptance criteria
 

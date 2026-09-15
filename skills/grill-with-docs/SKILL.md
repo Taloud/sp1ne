@@ -6,33 +6,24 @@ disable-model-invocation: true
 
 # grill-with-docs
 
-Run a **`/grilling`** session (the interview engine — relentless, one question at a time) and layer the project's documentation on top: detect the doc layout, sharpen the plan against the project's own glossary / lessons / ADRs, and update those docs **inline** as decisions crystallise.
+Run a grilling session (the interview engine, relentless, one question at a time) and layer the project's documentation on top: detect the doc layout, sharpen the plan against the project's own glossary / lessons / ADRs, and update those docs **inline** as decisions crystallise.
 
 <what-to-do>
 
-The interview methodology lives in **`/grilling`** — run it. This skill adds the doc-aware layer:
+The interview methodology lives in the `grilling` skill: call the Skill tool with "grilling" to run it. This skill adds the doc-aware layer:
 - **Detect the documentation layout** first (Phase 0), so you know what to read and where to write.
-- **Sharpen against the project's docs** — the mode-specific challenge axes in Phase 2, on top of `/grilling`'s generic behaviors.
-- **Write inline** — update the relevant doc artefact **as decisions crystallise**, never batched at the end. Show the diff or insert briefly before moving on.
+- **Sharpen against the project's docs**, the mode-specific challenge axes in Phase 2, on top of the grilling engine's generic behaviors.
+- **Write inline**, updating the relevant doc artefact **as decisions crystallise**, never batched at the end. Show the diff or insert briefly before moving on.
 
 </what-to-do>
 
 <supporting-info>
 
-## Phase 0 — Detect the documentation layout
+## Phase 0: Detect the documentation layout
 
-Before the first question, sniff the project root and `.claude/`. Pick the **first** mode whose marker is present.
+Before the first question, call the Skill tool with "project-docs". It detects the mode (`structured` / `domain` / `light` / `bootstrap`), announces it, and defines what to read and what may be written in that mode, plus the doc formats. Phase 2 below adds only the grilling-specific behaviour per mode.
 
-| Detected | Mode | Read | Write target |
-|---|---|---|---|
-| `.claude/CODEMAP.md` or `.claude/LESSONS.md` exists | **structured** | `CLAUDE.md`, `.claude/{LESSONS,GLOSSARY,CODEMAP}.md`, sub-`CLAUDE.md` for affected dirs | `.claude/GLOSSARY.md` (terms), `.claude/LESSONS.md` via `lessons-add` (rules), existing `doc/<topic>.md` convention (wide decisions) |
-| `CONTEXT.md` or `docs/adr/` exists | **domain** | `CONTEXT.md` (or `CONTEXT-MAP.md` + per-context `CONTEXT.md`), recent ADRs | `CONTEXT.md` (terms), `docs/adr/` sparingly (decisions — see [ADR-FORMAT.md](./ADR-FORMAT.md)) |
-| `CLAUDE.md` at root only | **light** | `CLAUDE.md` | inline Glossary section of `CLAUDE.md`; propose bootstrapping `.claude/LESSONS.md` if a rule emerges |
-| none of the above | **bootstrap** | nothing | ask the user where to record each finding before creating any file |
-
-Announce the detected mode in one line so the user can override: `_(mode: structured — will update .claude/GLOSSARY.md and .claude/LESSONS.md)_`.
-
-### Optional Step 0a — Ticket pre-seed
+### Optional Step 0a: Ticket pre-seed
 
 If a reference matching `[A-Z]+-\d+` is in the conversation (Jira/Linear style) **or** the user explicitly asks to grill on a ticket, fetch it before the first interview question.
 
@@ -44,87 +35,72 @@ If a reference matching `[A-Z]+-\d+` is in the conversation (Jira/Linear style) 
 
 **Use the ticket as input to interrogate, not to transcribe.** Translate it into pointed questions:
 
-- Quote ambiguous PO phrases verbatim and ask for concrete meaning. _("The ticket says 'l'utilisateur doit pouvoir filtrer rapidement' — what counts as 'rapidement'? <50ms perceived? <300ms p99?")_
+- Quote ambiguous PO phrases verbatim and ask for concrete meaning. _("The ticket says 'l'utilisateur doit pouvoir filtrer rapidement': what counts as 'rapidement'? <50ms perceived? <300ms p99?")_
 - Force vague acceptance criteria ("fast", "intuitive", "consistent") into testable form.
 - Cross-reference ticket claims against the codebase; flag contradictions immediately.
 - Surface hidden assumptions and implicit decisions the PO didn't make. Propose a recommended answer.
 
 **Read-only on the tracker.** Do NOT update, transition, or comment on the ticket. The tracker remains the PO's source of truth.
 
-## Phase 1 — Grilling behaviors
+## Phase 1: Grilling behaviors
 
-The core grilling behaviors — challenge glossary conflicts, sharpen fuzzy language, stress-test scenarios, cross-reference the code — live in **`/grilling`**. Run that session; the Phase 2 extras below sharpen it against the project's own docs.
+The core grilling behaviors (challenge glossary conflicts, sharpen fuzzy language, stress-test scenarios, cross-reference the code) live in the `grilling` skill. Call the Skill tool with "grilling" to run that session; the Phase 2 extras below sharpen it against the project's own docs.
 
-## Phase 2 — Mode-specific extras
+## Phase 2: Mode-specific extras
 
 ### `structured`
 
 Extra challenge axes:
 - Ambiguous PO/business term → cross-reference `.claude/GLOSSARY.md` for the canonical code mapping.
 - Plan touches shared/cross-cutting code → ask the user whether a project-specific impact check (skill, grep convention, doc) has been run. Don't infer.
-- Plan violates an existing LESSON → flag the LESSON id verbatim. _"This conflicts with `TST-007` — every functional test rolls back its transaction."_
+- Plan violates an existing LESSON → flag the LESSON id verbatim. _"This conflicts with `TST-007`: every functional test rolls back its transaction."_
 - Legacy ↔ modern pattern coexistence → confirm which side the plan targets and surface implications.
 
-Writes — see [LESSONS-FORMAT.md](./LESSONS-FORMAT.md) for tone. Delegate to skill `lessons-add` if available for the actual lesson-write.
+Writes: for the actual lesson-write, call the Skill tool with "lessons-add".
 
 ### `domain`
 
-Writes — see [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) for `CONTEXT.md`, [ADR-FORMAT.md](./ADR-FORMAT.md) for ADRs.
+Extra challenge axes:
+- A term used ambiguously across contexts → force one canonical word and list the losers as `_Avoid_` aliases.
+- A decision that crosses a context boundary → ask whether it is an integration contract worth an ADR.
 
-Treat `CONTEXT.md` as a glossary only — devoid of implementation details. Not a spec, not a scratch pad.
+This skill *changes* the domain model: challenging terms, sharpening language, writing decisions down as they crystallise. Merely reading `CONTEXT.md` for vocabulary is a one-line habit any skill can do (it is what `check-conventions` does); don't mistake that passive consumption for the active grilling work here.
 
-This skill *changes* the domain model — challenging terms, sharpening language, writing decisions down as they crystallise. Merely reading `CONTEXT.md` for vocabulary is a one-line habit any skill can do (it's what `/check-conventions` does); don't mistake that passive consumption for the active grilling work here.
+### `light` and `bootstrap`
 
-ADRs only when ADR-FORMAT.md's three criteria all hold.
-
-### `light`
-
-Writes:
-- Term resolved → propose adding/extending a Glossary section in `CLAUDE.md`. Don't create new files of authority on your own.
-- Generalisable rule → propose creating `.claude/LESSONS.md`. Ask first.
-- Wider decision → ask the user where to record it (extend `CLAUDE.md`? new `docs/<topic>.md`? skip?).
-
-### `bootstrap`
-
-Don't pose files of authority on your own initiative. Resolve in conversation. On the first finding worth keeping, ask:
-
-> "I'd like to record _X_. Options: (a) start a `.claude/GLOSSARY.md`, (b) add a Glossary section to your `README.md` / `CLAUDE.md`, (c) keep this in session-only memory, (d) bootstrap a full template if you have one. What works for you?"
-
-Capture decisions in conversation only until the user picks. Never create files without explicit permission in this mode.
+The docs are thin, so the grilling itself carries the load: resolve terms and decisions in conversation and keep them visible in the thread. Follow the ask-first write rules `project-docs` gives for these modes; never create a file of authority on your own initiative.
 
 ## Example session (`structured` mode)
 
 ```
 User:  Plan to add a `cancel reason` field to the Order entity.
 
-You:   _(mode: structured — will check .claude/GLOSSARY.md and .claude/LESSONS.md)_
+You:   _(mode: structured, will check .claude/GLOSSARY.md and .claude/LESSONS.md)_
 
 You:   Your .claude/GLOSSARY.md defines **Cancellation** as "termination triggered
        by the customer". You also said 'cancel reason' will be filled when ops
-       cancels for fraud — a different actor. Should the term cover both?
+       cancels for fraud, a different actor. Should the term cover both?
        Recommended: rename the entity-level concept to **Termination** and keep
        **Cancellation** for customer-driven only.
 
-User:  Good catch — go with that split.
+User:  Good catch, go with that split.
 
        [updates .claude/GLOSSARY.md inline]
 
-You:   Next: where does `reason` live — on `Order` directly, or in a new
+You:   Next: where does `reason` live, on `Order` directly, or in a new
        `Termination` value object? Your code already shows Order carries
        6 nullable status fields. Recommended: value object.
 ```
 
 ## Anti-patterns
 
-- Asking questions whose answer is in the code or in an index like `CODEMAP.md`/`CONTEXT.md` — read first.
+- Asking questions whose answer is in the code or in an index like `CODEMAP.md`/`CONTEXT.md`: read first.
 - Creating `CONTEXT.md`, `docs/adr/`, or `.claude/` files on a project that has none, without explicit permission.
-- Posing a `CONTEXT.md` on `structured` mode (duplicates `GLOSSARY.md`).
-- Imposing `docs/adr/` on `structured` mode if the project already has its own doc convention.
-- Updating `LESSONS.md` directly with verbose prose when the `lessons-add` skill is available — delegate to it.
-- Batching updates at the end of the session — capture inline.
+- Updating `LESSONS.md` directly with verbose prose instead of calling the Skill tool with "lessons-add".
+- Batching updates at the end of the session: capture inline.
 
 ## Notes
 
-- Builds on `/grilling` (the interview engine) and works hand-in-hand with `lessons-add` (the LESSON-writer) and any ticket-fetching skill the user has set up.
+- Builds on the `grilling` skill (the interview engine) and on `project-docs` (layout detection and doc formats), and delegates lesson writes to `lessons-add`. Any ticket-fetching skill the user has set up plugs into Step 0a.
 
 </supporting-info>

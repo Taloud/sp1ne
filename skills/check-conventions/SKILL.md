@@ -1,28 +1,21 @@
 ---
 name: check-conventions
-description: Verify a code diff against the project's documented conventions — glossary terms (CONTEXT.md / GLOSSARY.md), ADRs (docs/adr/), and lessons (LESSONS.md). Read-only and advisory — surfaces violations, never blocks or edits. Use when the user wants to check a diff against project conventions ("check conventions", "vérifier les conventions"), and proactively after a non-trivial code change or before opening a PR.
+description: Verify a code diff against the project's documented conventions, glossary terms (CONTEXT.md / GLOSSARY.md), ADRs (docs/adr/), and lessons (LESSONS.md). Read-only and advisory: surfaces violations, never blocks or edits. Use when the user wants to check a diff against project conventions ("check conventions", "vérifier les conventions"), and proactively after a non-trivial code change or before opening a PR.
 ---
 
 # check-conventions
 
 Verify that a diff respects the project's documented conventions.
 
-## Phase 0 — Detect the documentation layout
+## Phase 0: Detect the documentation layout
 
-| Detected | Mode |
-|---|---|
-| `.claude/CODEMAP.md` or `.claude/LESSONS.md` exists | **structured** |
-| `CONTEXT.md` or `docs/adr/` exists | **domain** |
-| `CLAUDE.md` at root only | **light** |
-| none of the above | **bootstrap** — exit immediately with `_(no conventions documented — nothing to check against)_` |
+Call the Skill tool with "project-docs". It detects and announces the mode (`structured` / `domain` / `light` / `bootstrap`) and states what that mode holds. In **bootstrap** there is nothing documented to check against: exit immediately with `_(no conventions documented, nothing to check against)_`.
 
-Announce the detected mode in one line.
-
-## Phase 1 — Determine the scope to check
+## Phase 1: Determine the scope to check
 
 Pick the first matching case:
 
-1. **Explicit argument** — file paths, a git range (`HEAD~5..HEAD`), or a PR number (`#1234`).
+1. **Explicit argument**: file paths, a git range (`HEAD~5..HEAD`), or a PR number (`#1234`).
    - PR: `gh pr diff <N>`
    - Range: `git diff <range>`
    - Files: `git diff -- <files>` (staged + unstaged)
@@ -33,37 +26,39 @@ Skip files that are pure infra / config noise unless the user said otherwise: lo
 
 If the resulting diff is empty after filtering, say so and stop.
 
-## Phase 2 — Load conventions
+## Phase 2: Load conventions
 
-For the detected mode, read:
+Read the mode's documents as `project-docs` describes them, restricted to what a read-only check needs:
 
 - **structured**: `.claude/GLOSSARY.md` (canonical terms), `.claude/LESSONS.md` (rules), recent `docs/adr/` entries (architectural decisions), `.claude/CODEMAP.md` (module layout if present).
-- **domain**: `CONTEXT.md` (or per-context `CONTEXT.md` for the touched area, via `CONTEXT-MAP.md` if present), `docs/adr/`.
-- **light**: Glossary section of `CLAUDE.md`.
+- **domain**: `CONTEXT.md` (or the per-context `CONTEXT.md` of the touched area, via `CONTEXT-MAP.md` if present), `docs/adr/`.
+- **light**: the Glossary section of `CLAUDE.md`.
+
+This skill never writes to any of them.
 
 Skip ADRs that are obviously unrelated to the touched area (read titles first, full content only if a touched file/module matches).
 
-## Phase 3 — Run checks
+## Phase 3: Run checks
 
 For each touched file in the diff, evaluate against the following. For a worked example of each check type, see `EXAMPLES.md` in this skill folder.
 
 ### Vocabulary drift (`structured` + `domain` + `light`)
 Terms used in code (identifiers, types, function names, comments, log messages, user-facing strings) that contradict the canonical term defined in the glossary.
 
-When a glossary entry lists `_Avoid_` aliases (banned synonyms for a canonical term), treat any use of one of those aliases as actionable drift, not a judgement call: name the alias found and the canonical term that should replace it (e.g. "uses `Client`, glossary mandates `Customer`"). This is the highest-confidence kind of vocabulary finding — the glossary has already pre-declared the wrong words.
+When a glossary entry lists `_Avoid_` aliases (banned synonyms for a canonical term), treat any use of one of those aliases as actionable drift, not a judgement call: name the alias found and the canonical term that should replace it (e.g. "uses `Client`, glossary mandates `Customer`"). This is the highest-confidence kind of vocabulary finding. The glossary has already pre-declared the wrong words.
 
 ### ADR contradiction (`structured` + `domain`)
 Changes that violate a documented architectural decision.
 
-Only flag with confidence — if the ADR's applicability is debatable, surface it as a *question*, not a violation.
+Only flag with confidence: if the ADR's applicability is debatable, surface it as a *question*, not a violation.
 
 ### LESSON violation (`structured`)
 Changes that contradict a rule recorded in `.claude/LESSONS.md`. Cite the LESSON id verbatim.
 
 ### CODEMAP drift (`structured`, if present)
-A new module or file placed in a location that contradicts the documented module layout. Soft signal — sometimes the CODEMAP is out of date and *it* needs updating.
+A new module or file placed in a location that contradicts the documented module layout. Soft signal: sometimes the CODEMAP is out of date and *it* needs updating.
 
-## Phase 4 — Report
+## Phase 4: Report
 
 Output a structured report. **Match the conversation's language** (FR if the diff/repo is in French, EN otherwise).
 
@@ -87,25 +82,25 @@ For each violation:
 ```
 
 Severity levels:
-- **violation** — clear contradiction (flag the LESSON id verbatim, the canonical glossary term, or the ADR number)
-- **question** — possible drift, applicability not certain — surface for the user to judge
+- **violation**: clear contradiction (flag the LESSON id verbatim, the canonical glossary term, or the ADR number)
+- **question**: possible drift, applicability not certain; surface for the user to judge
 
 End the report with a one-line summary: `X violations, Y questions across N files.`
 
-## Phase 5 — Optional comment on PR
+## Phase 5: Optional comment on PR
 
 If invoked during a PR review **and** the user explicitly asks to post the report on the PR, do so as a comment with the AI disclaimer (matching `/triage` convention):
 
-> *Généré par IA — vérification des conventions du projet.* (FR)
+> *Vérification des conventions du projet, générée par IA.* (FR)
 >
-> *This was generated by AI — project conventions check.* (EN)
+> *Project conventions check, generated by AI.* (EN)
 
 Default behavior is to print to the terminal, not to post.
 
 ## Anti-patterns
 
-- **Don't refuse, don't block, don't auto-fix.** This skill is advisory only — it reports violations but never blocks, edits, or commits; acting on findings is the user's call.
+- **Don't refuse, don't block, don't auto-fix.** This skill is advisory only: it reports violations but never blocks, edits, or commits; acting on findings is the user's call.
 - **Don't flag style/format issues** that linters/formatters handle (Prettier, PHP-CS-Fixer, etc.). Those are out of scope.
 - **Don't re-flag the same violation** the user has already explicitly accepted in a previous turn of the current session.
-- **Don't write to `LESSONS.md` / `CONTEXT.md` / `docs/adr/`.** If a finding suggests a doc is out of date (e.g. CODEMAP drift looks legitimate), recommend `/grill-with-docs` or `/lessons-add` to address it — don't update silently.
-- **Don't run on trivial diffs** (lockfiles, typos/comments, formatting/version bumps) — pure noise.
+- **Don't write to `LESSONS.md` / `CONTEXT.md` / `docs/adr/`.** If a finding suggests a doc is out of date (e.g. CODEMAP drift looks legitimate), suggest the user runs `/grill-with-docs`, or recommend recording the rule with the `lessons-add` skill. Don't update silently.
+- **Don't run on trivial diffs** (lockfiles, typos/comments, formatting/version bumps): pure noise.
