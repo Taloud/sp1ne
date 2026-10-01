@@ -65,6 +65,8 @@ When the diff modifies any `**/*.spec.{js,ts}`, build the test URLs **the same w
 
 ## 6. Description & "Comment tester"
 
+Write for a reviewer who has not read the diff: brief, concise, precise, in plain human language. Say what changes for the user or the page and why, not which classes or methods were touched. One idea per bullet, short sentences, no jargon a reviewer would have to look up.
+
 - **Description**: 3-6 bullets summarizing the diff (added components, integrations, configs, helpers, unit tests). Mention transverse changes (`common/`, `shared/`, …) and per-area overrides (e.g. SCSS) when present.
 - **Comment tester**: diff-specific steps (open URLs, verify rendering, run impacted specs + unit tests if any). No generic checklist filler.
 
@@ -81,6 +83,8 @@ When per-area grouping makes sense, group by area with kind labels as sub-bullet
 ```
 
 Otherwise, list URLs flat under the section.
+
+Every URL anywhere in the description (*Description*, *Comment tester*, *URLs de test*) is a full URL built from the discovered base URL: scheme, host, port and path, ready to click. Never a bare path (`/foo/bar`), a slug or a route name. When the description mentions a redirect, write both ends as full URLs (`<https://.../from> → <https://.../to>`).
 
 ## 8. Final template (output stays in French)
 
@@ -146,6 +150,8 @@ A single line listing the remaining placeholders to fill (e.g. `À compléter : 
 - ❌ Hardcoding a GitHub repo (`owner/name`). Use `gh repo view` or the `origin` remote.
 - ❌ Repeating the area name in the URL list (`siteA : kindA`, `siteA : kindB`). Use grouping.
 - ❌ Inventing URLs: extract **only** from `navigateTo` / `page.goto` calls in modified specs.
+- ❌ Bare paths or slugs (`/foo/bar`, `paris-75`) instead of full clickable URLs, in any section.
+- ❌ Code-level narration (class names, method names, refactor details) where a plain sentence about the behaviour would do.
 - ❌ Inflated checklist: keep the 3 template items.
 - ❌ Running tests / linters: this skill only produces text.
 - ❌ Emitting the description as live markdown (rendered `##` headings). Wrap it in a fenced code block so the literal `##` survives copy-paste.
