@@ -28,7 +28,7 @@ Each skill is **user-invoked** (you type its slash-command; `disable-model-invoc
 | `check-conventions` | Verify a diff against the project's documented conventions (glossary, ADRs, lessons). Read-only. |
 | `lessons-add` | Append a structured lesson to `.claude/LESSONS.md` when the user corrects Claude on a generalisable rule. |
 | `grilling` | The interview engine, relentless, one question at a time. Invoked by `/grill-with-docs` and `/triage`, and reusable on its own to stress-test any plan. |
-| `orchestrator` | Delegate a large, separable task to subagents routed by model tier, never above the session model, which keeps planning, verification and integration. Fires on big multi-file tasks and repo-wide mechanical passes; not for conversation-bound work. |
+| `orchestrator` | Delegate a large, separable task to subagents routed by model tier, never above the session model, which keeps planning, verification and integration. Fires when a request touches many files or the whole repo, lists several independent pieces of work, or names delegation (orchestrate, split this up, use subagents); not for conversation-bound work. |
 
 ## Add a new skill
 

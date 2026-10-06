@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Delegate a large, separable task to subagents by model tier; the session model plans, verifies, integrates. Use for multi-file work, repo-wide mechanical passes, or when asked to orchestrate. Not for interviews or a few edits.
+description: Delegate a large, separable task to subagents by model tier; the session model plans, verifies, integrates. Use when the user asks for a change that touches many files or the whole repo (rename X everywhere, migrate every Y to Z, apply a rule across the codebase, update all call sites), when a request lists several independent pieces of work, or when the user says orchestrate, delegate, split this up, use subagents, or wants cheaper models to take the mechanical parts. Not for interviews, syntheses of the conversation, or a few edits in files already open.
 argument-hint: "The task to execute with best-fit model delegation"
 ---
 
