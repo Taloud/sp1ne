@@ -9,9 +9,9 @@
 //     -- ., git restore ., git restore --worktree .); named files stay
 //     allowed;
 //   - stash drop and stash clear.
-// Same strict string-based parsing as deny-ssh and deny-risky-git-push:
+// Same strict string-based parsing as deny-ssh and deny-git-push:
 // quoted forms (`bash -c "git reset --hard"`) are caught too, and the git
-// subcommand is resolved the same way as deny-risky-git-push, so
+// subcommand is resolved the same way as deny-git-push, so
 // `git -C dir reset --hard` is caught as well.
 // Registered by the sp1ne-hooks plugin via hooks/hooks.json.
 

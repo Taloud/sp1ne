@@ -10,7 +10,11 @@
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deny-risky-git-push.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deny-git-push.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/deny-credential-tampering.mjs\""
           },
           {
             "type": "command",

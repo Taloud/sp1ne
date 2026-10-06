@@ -126,15 +126,25 @@ A `PreToolUse` hook that denies **any** Bash command invoking `ssh`: directly (`
 
 To block more binaries the same way (`scp`, `sftp`, …), add them to the `BLOCKED` list at the top of `plugins/sp1ne-hooks/hooks/deny-ssh.mjs`.
 
-### deny-risky-git-push
+### deny-git-push
 
-A `PreToolUse` hook that denies risky `git push` invocations:
+A `PreToolUse` hook that denies **every** `git push`, whatever the remote, branch, flags or refspec (`--dry-run` included, on purpose). Pushing publishes work outside the machine, so it stays the user's call: the agent leaves the commit in place and asks the user to push from their own terminal. Quoted forms (`bash -c "git push"`) and global options (`git -C dir push`, `git -c key=value push`) are caught too.
 
-- **any force push, to any branch**: `-f`, `--force`, `--force-with-lease[=…]`, `--force-if-includes`, a `+refspec`, `--mirror`;
-- **any push targeting a protected branch** (`main`, `master`, `develop`): explicit (`git push origin main`, `HEAD:master`, `--delete origin main`, `--all`) or implicit (`git push` with no refspec while the current branch is protected, resolved by running `git` in the session's cwd, best effort);
-- **any tag push**: `--tags`, `--follow-tags`, a `refs/tags/…` refspec, or a refspec naming a local tag (`git push origin v1.0.0`, resolved via `git tag -l` in the session's cwd, best effort).
+Not covered: server-side writes through `gh` (`gh api -X PUT …/contents/…`, `gh repo sync`). Add a hook if that matters to you.
 
-Pushing feature branches stays allowed. The protected list is the `PROTECTED` array at the top of `plugins/sp1ne-hooks/hooks/deny-risky-git-push.mjs`.
+### deny-credential-tampering
+
+A `PreToolUse` hook that denies commands changing who the agent acts as, or how `git` and `gh` authenticate, so a denied push cannot be worked around by switching account or rewiring credentials:
+
+- **`gh auth <anything but status>`**: `switch`, `login`, `logout`, `setup-git`, `refresh`, `token`, `git-credential`;
+- **`git config` writes** to identity, credential, remote or transport keys (`user.*`, `credential.*`, `remote.*`, `url.*`, `http.*`, `https.*`, `include.*`, `includeIf.*`, `core.sshCommand`, `core.askPass`, `gpg.*`, `commit.gpgsign`) and `git config --edit`; reads (`--get`, `--get-all`, `--list`, `--show-origin`, a bare `git config <key>`) stay allowed;
+- **the same keys passed inline**: `git -c key=value …`, `--config-env=key=…`;
+- **`git credential*`**: `fill`, `approve`, `reject`, `store`, `cache`, `osxkeychain`;
+- **`git remote add | remove | rm | rename | set-url`**; `git remote -v`, `show`, `get-url` stay allowed;
+- **environment overrides**: `GH_TOKEN=`, `GITHUB_TOKEN=`, `GIT_ASKPASS=`, `GIT_SSH_COMMAND=`, `GIT_CONFIG_*=`, `GIT_AUTHOR_*=`, `GIT_COMMITTER_*=`, `GIT_CREDENTIAL_*=`;
+- **any mention of a credential store file**: `.git-credentials`, `.netrc`, `_netrc`, `gh/hosts.yml`.
+
+Known gap: editing `~/.gitconfig` or `.git/config` directly with `sed` or `echo` is not caught, because the tokenizer cannot tell a read from a write on a path. The key list is the `DENIED_KEY_PREFIXES` array at the top of `plugins/sp1ne-hooks/hooks/deny-credential-tampering.mjs`.
 
 ### deny-destructive-git
 
@@ -188,7 +198,9 @@ sp1ne/
 │       └── hooks/
 │           ├── hooks.json  # registers the hooks (PreToolUse → deny-*)
 │           ├── deny-ssh.mjs
-│           └── deny-risky-git-push.mjs
+│           ├── deny-git-push.mjs
+│           ├── deny-credential-tampering.mjs
+│           └── deny-destructive-git.mjs
 ├── scripts/
 │   └── statusline.mjs      # optional statusline; wired manually (plugins can't set statusLine)
 └── skills/                 # the bundle, shipped by the plugin
