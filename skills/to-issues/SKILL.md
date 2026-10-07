@@ -1,7 +1,6 @@
 ---
 name: to-issues
-description: Break a PRD into vertical-slice GitHub issues, each attached as a native sub-issue of the parent PRD.
-disable-model-invocation: true
+description: Break a PRD into vertical-slice GitHub issues, each attached as a native sub-issue of the parent PRD. Use on an explicit request ("/to-issues", "split this PRD") or when an orchestrating skill or command reaches its slicing step; never on the mere mention of a PRD or an issue.
 ---
 
 # to-issues
@@ -10,10 +9,10 @@ Break a PRD into **tracer-bullet vertical-slice issues**, each attached as a **n
 
 ## Setup expected on the repo
 
-This skill assumes a **GitHub** repo where slices enter triage via the **`needs-triage`** label. If that label is missing, create it on the fly the first time you need it:
+This skill assumes a **GitHub** repo where slices enter triage via the **`needs-triage`** label. Slices go on the repo that carries the PRD issue, which may differ from the current directory's repo: pass `--repo <owner>/<repo>` to `gh label create` and `gh issue create` in that case. If the label is missing, create it on the fly the first time you need it:
 
 ```bash
-gh label create needs-triage --description "Maintainer needs to evaluate" --color fbca04
+gh label create needs-triage --repo <owner>/<repo> --description "Maintainer needs to evaluate" --color fbca04
 ```
 
 If the repo uses a different triage-state label (e.g. `bug:triage`), substitute it throughout.
@@ -126,7 +125,7 @@ Containment (sub-issue) and dependency (blocked-by) are different relationships;
 
 A reference to the parent PRD issue: `#<PRD_NUMBER>`.
 
-(Optional: also reference the upstream tracker, e.g. `<TRACKER>: <TICKET-ID>` if the PRD itself references one.)
+(Optional: also reference the upstream tracker ticket by its full URL, if the PRD itself references one.)
 
 ## What to build
 
@@ -134,13 +133,15 @@ A concise description of this vertical slice. Describe the end-to-end behavior, 
 
 ## Acceptance criteria
 
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] Criterion 3
+- [ ] Criterion 1 — Verification: <command>
+- [ ] Criterion 2 — Verification: <command>
+- [ ] Criterion 3 — Verification: manual — <observable criterion>
+
+Every criterion carries its `Verification:` line, taken from the PRD's `## Testing Decisions` (a command runnable from the repo root, or `manual — <observable criterion>`): whoever picks the slice sees it fail before the code and pass after.
 
 ## Blocked by
 
-- A reference to the blocking ticket (e.g. `#1107`)
+- A reference to the blocking slice (e.g. `#1107`), one line per blocker
 
 Or "None - can start immediately" if no blockers.
 ```
