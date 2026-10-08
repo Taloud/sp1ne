@@ -1,7 +1,6 @@
 ---
 name: to-issues
-description: Break a PRD into vertical-slice GitHub issues, each attached as a native sub-issue of the parent PRD.
-disable-model-invocation: true
+description: Break a PRD into vertical-slice GitHub issues, each attached as a native sub-issue of the parent PRD. Use on an explicit request ("/to-issues", "split this PRD") or when an orchestrating skill or command reaches its slicing step; never on the mere mention of a PRD or an issue.
 ---
 
 # to-issues

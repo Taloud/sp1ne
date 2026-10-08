@@ -11,10 +11,6 @@ Each skill is **user-invoked** (you type its slash-command; `disable-model-invoc
 | Skill | Purpose |
 |---|---|
 | `sp1ne` | **Router**: names every skill and the flow that links them. Start here when you're unsure which to run. |
-| `grill-with-docs` | Stress-test a plan against the project's docs (auto-detects layout) and update artifacts inline. |
-| `to-prd` | Synthesize current context into a PRD published as a parent GitHub issue. |
-| `to-issues` | Break a PRD into vertical-slice GitHub sub-issues. |
-| `triage` | Triage GitHub issues through a small state machine of roles. |
 | `handoff` | Compact the current conversation into a handoff document for a fresh session. |
 | `pr-description` | Generate a PR description from the current branch's diff. Auto-detects Jira, parent issue, impacted areas, and Playwright URLs from the project's own config. Output in French. |
 | `bootstrap-project` | Scaffold a new project's `CLAUDE.md` + `.claude/` docs from a template (`generic` or `symfony`). Non-destructive. Replaces the old `install init`. |
@@ -29,6 +25,10 @@ Each skill is **user-invoked** (you type its slash-command; `disable-model-invoc
 | `lessons-add` | Append a structured lesson to `.claude/LESSONS.md` when the user corrects Claude on a generalisable rule. |
 | `grilling` | The interview engine, relentless, one question at a time. Invoked by `/grill-with-docs` and `/triage`, and reusable on its own to stress-test any plan. |
 | `orchestrator` | Delegate a large, separable task to subagents routed by model tier, never above the session model, which keeps planning, verification and integration. Fires on big multi-file tasks and repo-wide mechanical passes; not for conversation-bound work. |
+| `grill-with-docs` | Stress-test a plan against the project's docs (auto-detects layout) and update artifacts inline. Model-invoked so that a consumer's orchestrating command can chain it; its description guards against mere mentions. |
+| `to-prd` | Synthesize current context into a PRD published as a parent GitHub issue. Same chaining rationale as `grill-with-docs`. |
+| `to-issues` | Break a PRD into vertical-slice GitHub sub-issues. Same chaining rationale. |
+| `triage` | Triage GitHub issues through a small state machine of roles. Same chaining rationale. |
 
 ## Add a new skill
 
@@ -52,7 +52,7 @@ git add my-skill && git commit -m "skill: add my-skill"
 
 ## Conventions inside this folder
 
-- **Invocation taxonomy.** Every skill is either **user-invoked** (`disable-model-invocation: true`; a human-facing one-line `description`, no trigger lists) or **model-invoked** (no flag; a trigger-rich, model-facing `description` that costs context every turn). The test for model-invoked: *could Claude usefully reach for it on its own, or must another skill reach it?* A user-invoked skill may invoke model-invoked skills, but never another user-invoked one.
+- **Invocation taxonomy.** Every skill is either **user-invoked** (`disable-model-invocation: true`; a human-facing one-line `description`, no trigger lists) or **model-invoked** (no flag; a trigger-rich, model-facing `description` that costs context every turn). The test for model-invoked: *could Claude usefully reach for it on its own, or must another skill reach it?* A user-invoked skill may invoke model-invoked skills, but never another user-invoked one. The flow skills (`grill-with-docs`, `to-prd`, `to-issues`, `triage`) are model-invoked for that reason: a consumer repo's own orchestrating command (user-invoked) must be able to reach them with the Skill tool; each description guards against firing on a mere mention.
 - Skill instructions are written in **English**: they live in this bundle and are read by Claude. The skill's runtime output should match the **conversation language** (most skills detect it automatically; a few are intentionally locked to the team language, e.g. `pr-description` outputs French).
 - Each skill is self-contained, with one deliberate exception: the doc-layout detection (`structured` / `domain` / `light` / `bootstrap`), the per-mode read/write rules and the doc formats (`ADR-FORMAT.md`, `CONTEXT-FORMAT.md`, `LESSONS-FORMAT.md`) are single-sourced in the model-invoked `project-docs` skill. `grill-with-docs`, `check-conventions` and `tdd` call it instead of carrying a copy. Add mode-specific behaviour in the consumer, add mode *definitions* in `project-docs`.
 - **Invoking another skill.** When a skill's own steps tell the agent to run a **model-invoked** skill right now, write `Call the Skill tool with "<name>"`, one skill per call (two skills means "twice"), never a bare `/name` left for the model to interpret. Router-style prose naming a skill for a human to type keeps the `/name` label. A user-invoked skill can only be reached by the human, so phrase that as an instruction to them ("suggest the user runs `/grill-with-docs`").

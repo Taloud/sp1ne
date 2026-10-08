@@ -1,7 +1,6 @@
 ---
 name: to-prd
-description: Turn the current conversation into a PRD published as a parent GitHub issue, a container document for the vertical-slice work tickets created later.
-disable-model-invocation: true
+description: Turn the current conversation into a PRD published as a parent GitHub issue, a container document for the vertical-slice work tickets created later. Use on an explicit request ("/to-prd", "write the PRD") or when an orchestrating skill or command reaches its PRD step after a grill; never on the mere mention of a ticket, a plan or a PRD.
 ---
 
 # to-prd
