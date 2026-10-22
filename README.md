@@ -130,6 +130,14 @@ To block more binaries the same way (`scp`, `sftp`, …), add them to the `BLOCK
 
 A `PreToolUse` hook that denies **every** `git push`, whatever the remote, branch, flags or refspec (`--dry-run` included, on purpose). Pushing publishes work outside the machine, so it stays the user's call: the agent leaves the commit in place and asks the user to push from their own terminal. Quoted forms (`bash -c "git push"`) and global options (`git -C dir push`, `git -c key=value push`) are caught too.
 
+**Opt-in branch allowlist.** A project whose own flow pushes feature branches can let those through, and only those, by setting a regex in the `env` block of its settings (`.claude/settings.local.json` for yourself, `.claude/settings.json` for the whole team):
+
+```json
+{ "env": { "SP1NE_GIT_PUSH_ALLOW_BRANCHES": "^(feat|fix|chore|docs|refactor|test|perf|build|ci)/" } }
+```
+
+A push then passes only when it names the remote `origin` and at least one branch, every branch matches the regex, and no flag is outside `-u`, `--set-upstream`, `--force-with-lease[=…]`, `--force-if-includes`, `--dry-run`, `-n`, `-q`, `-v`, `--atomic`, `--porcelain`, `--[no-]progress`. Everything else stays denied: a bare `git push` or `HEAD` (the target depends on the checkout), `main`, `master` and `develop` whatever the regex says, a `+refspec`, `-f`, `--force`, `--delete`, `:branch`, `--all`, `--mirror`, `--tags`, `--follow-tags`, any `refs/` other than `refs/heads/`, a shell variable or command substitution, `git -c …` and an environment assignment before `git`. An invalid regex denies every push. Restart the session after changing the variable.
+
 Not covered: server-side writes through `gh` (`gh api -X PUT …/contents/…`, `gh repo sync`). Add a hook if that matters to you.
 
 ### deny-credential-tampering
