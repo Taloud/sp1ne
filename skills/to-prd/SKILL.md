@@ -1,7 +1,6 @@
 ---
 name: to-prd
-description: Turn the current conversation into a PRD published as a parent GitHub issue, a container document for the vertical-slice work tickets created later.
-disable-model-invocation: true
+description: Turn the current conversation into a PRD published as a parent GitHub issue, a container document for the vertical-slice work tickets created later. Use on an explicit request ("/to-prd", "write the PRD") or when an orchestrating skill or command reaches its PRD step after a grill; never on the mere mention of a ticket, a plan or a PRD.
 ---
 
 # to-prd
@@ -12,7 +11,8 @@ Do NOT interview the user: synthesize what you already know. If genuinely missin
 
 - **GitHub** is the issue tracker. The PRD is published via `gh issue create`.
 - The repo follows the bundle's documentation conventions where applicable: domain vocabulary in `CONTEXT.md` (or `.claude/GLOSSARY.md` in `structured` mode), decisions in `docs/adr/`.
-- An upstream tracker (Jira, Linear, etc.) may exist as the parent of the PRD. Link to it, never modify it.
+- An upstream tracker (Jira, Linear, etc.) may exist as the parent of the PRD. Link to it by its full URL, never modify it.
+- The PRD is published on the repo the caller designates (a command or an orchestrating skill may name it, with the reason); by default, the current repo.
 
 ## Process
 
@@ -36,7 +36,7 @@ Write the PRD using the template in [`prd-template.md`](prd-template.md). Reuse 
 
 If a grilling session (`/grill-with-docs`) produced ADRs or `CONTEXT.md` updates relevant to this PRD, reference them by path in `## Implementation Decisions` rather than restating their content.
 
-**If the `$PRD_DIR` environment variable is set**, also write the PRD markdown to a file there (creating the directory if needed). This gives the user a persistent local copy alongside the published GitHub issue. Filename convention: `prd-<kebab-subject>-<YYYYMMDD-HHMM>.md`. Quote the path when creating it (`mkdir -p "$PRD_DIR"`) and don't overwrite an existing file: suffix `-2` on a collision. If `$PRD_DIR` is unset or empty, skip this; the GitHub issue remains the source of truth.
+**Where the draft goes.** If the caller gives a directory, write the PRD markdown there first (creating it if needed): it is the draft shown to the user before publication and stays as a local copy alongside the published issue. Otherwise, if the `$PRD_DIR` environment variable is set, use it the same way. Filename convention: `prd-<kebab-subject>-<YYYYMMDD-HHMM>.md`. Quote the path when creating it (`mkdir -p "<dir>"`) and don't overwrite an existing file: suffix `-2` on a collision. With neither, skip the file; once published, the GitHub issue remains the source of truth.
 
 ### 4. Publish the PRD as a GitHub issue
 
@@ -44,14 +44,15 @@ If a grilling session (`/grill-with-docs`) produced ADRs or `CONTEXT.md` updates
 
 - Apply the **`prd`** label, NOT a triage state label like `needs-triage`: the PRD is a **container document**, not a unit of work, so the triage state machine applies to its sub-issues, not to the PRD itself.
 - Also apply the relevant **category** label (`enhancement` or `bug`) since the underlying work has a category, even if the PRD itself isn't actionable directly.
-- If the `prd` label does not exist on the repo, create it first:
+- If the `prd` label does not exist on the target repo, create it first (`--repo <owner>/<repo>` whenever the target is not the current directory's repo, on `gh label create` and `gh issue create` alike):
   ```bash
-  gh label create prd --description "Container document: work happens in sub-issues, not on this issue" --color 5319e7
+  gh label create prd --repo <owner>/<repo> --description "Container document: work happens in sub-issues, not on this issue" --color 5319e7
   ```
-- If a parent ticket exists in an upstream tracker (Jira, Linear, etc.), reference it in the title prefix **and** in the `## Parent` section of the body. Title format: `[TICKET-ID] subject`. Without an upstream parent, just `subject`.
+- If a parent ticket exists in an upstream tracker (Jira, Linear, etc.), reference it in the title prefix **and** in the `## Parent` section of the body, by its full URL. Title format: `[TICKET-ID] subject`. Without an upstream parent, just `subject`.
+- Before publishing, check that every tested behaviour in `## Testing Decisions` carries its `Verification:` line (see the template): it is the contract the slices inherit, and what an implementer sees fail before the code and pass after.
 
-### 5. Surface the issue number
+### 5. Surface the issue URL
 
-After publication, output the PRD issue number explicitly and suggest the next step without launching it. If you also wrote a local copy to `$PRD_DIR`, surface that path too:
+After publication, output the full URL of the PRD issue (`https://github.com/<owner>/<repo>/issues/<n>`, never a bare `#<n>`, which is ambiguous across repos) and suggest the next step without launching it. If you also wrote a local copy, surface its absolute path too:
 
-> "PRD published as #1234. When ready, run `/to-issues #1234` to break it into vertical slices attached as sub-issues."
+> "PRD published as https://github.com/<owner>/<repo>/issues/1234. When ready, run `/to-issues https://github.com/<owner>/<repo>/issues/1234` to break it into vertical slices attached as sub-issues."

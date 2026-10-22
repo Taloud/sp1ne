@@ -1,7 +1,6 @@
 ---
 name: triage
-description: Triage GitHub issues through a state machine of category and state roles, preparing them for an AFK agent or human.
-disable-model-invocation: true
+description: Triage GitHub issues through a state machine of category and state roles, preparing them for an AFK agent or human. Use on an explicit request ("/triage", "triage these issues") or when an orchestrating skill or command reaches its triage step; never on the mere mention of an issue.
 ---
 
 # triage

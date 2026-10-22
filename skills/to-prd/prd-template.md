@@ -5,7 +5,7 @@ Write the PRD body using this skeleton. Fill every section that applies; omit **
 ```markdown
 ## Parent
 
-A reference to the parent ticket on the upstream tracker (Jira/Linear/etc.), if one exists. Otherwise omit this section.
+The full URL of the parent ticket on the upstream tracker (Jira/Linear/etc.), if one exists. Otherwise omit this section.
 
 ## Problem Statement
 
@@ -49,6 +49,9 @@ Exception: if a prototype produced a snippet that encodes a decision more precis
 - The seams at which the feature is tested (prefer existing seams, the highest possible, the fewest possible, ideally one)
 - Which modules will be tested
 - Prior art for the tests in the codebase
+- Every tested behaviour carries a `Verification: <command>` line, runnable from the repo root (a test filter, a scenario, a `grep`…), or `Verification: manual — <observable criterion>` with the reason no command is possible. It must fail before the implementation and pass after; the slices inherit it criterion by criterion.
+
+- <behaviour> — Verification: <command>
 
 ## Out of Scope
 

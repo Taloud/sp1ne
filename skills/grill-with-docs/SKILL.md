@@ -1,7 +1,6 @@
 ---
 name: grill-with-docs
-description: A relentless interview that stress-tests a plan against the project's own docs and updates them (glossary, lessons, ADRs) inline as decisions crystallise.
-disable-model-invocation: true
+description: A relentless interview that stress-tests a plan against the project's own docs and updates them (glossary, lessons, ADRs) inline as decisions crystallise. Use on an explicit request to grill a plan with doc capture ("/grill-with-docs", "grill this against the docs") or when an orchestrating skill or command reaches its grill step; never on the mere mention of a plan or a ticket.
 ---
 
 # grill-with-docs
